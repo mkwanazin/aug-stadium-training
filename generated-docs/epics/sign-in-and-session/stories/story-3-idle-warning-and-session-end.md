@@ -37,6 +37,16 @@ six-state interaction contract and honours `prefers-reduced-motion`.
 
 None for this story.
 
+## Clarifications added during test generation
+
+- **Ordinary activity does not dismiss an open warning.** AC-2 says the idle window resets when
+  work resumes *before* the warning appears. The source material never says what ordinary activity
+  does once the warning is already open. The contract is: only the explicit "Stay signed in"
+  action — or expiry — closes it. A stray keystroke must not silently dismiss a security warning.
+- **`prefers-reduced-motion` is manual-only.** The story requires the dialog to honour the OS
+  reduced-motion setting, but no acceptance criterion carries it and jsdom cannot observe it, so it
+  is verified by hand (see the checklist below) rather than by an automated test.
+
 ## Manual test checklist
 
 - Sign in and leave the app untouched for 14 minutes → a warning appears counting down 60 seconds
@@ -45,3 +55,5 @@ None for this story.
 - Type or move the mouse before the 14 minutes are up → the clock starts over and no warning appears
 - Answer the warning using only the keyboard → focus lands on the warning when it opens and returns to where you were
 - Leave a session open past eight hours (or ask us to shorten the limit for a test) → the next screen you open sends you back to sign-in
+- With the warning showing, type or move the mouse without answering it → the warning stays put and keeps counting down; only "Stay signed in" dismisses it
+- Turn on your computer's "reduce motion" setting, then trigger the warning → it appears without animating

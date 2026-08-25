@@ -60,6 +60,10 @@ export async function apiClient<T = unknown>(
   try {
     const response = await fetch(url, {
       ...fetchConfig,
+      // Session is conveyed by an HttpOnly cookie the browser attaches itself
+      // (project.md §Authentication), so every request must carry credentials.
+      // Callers can override per request.
+      credentials: fetchConfig.credentials ?? 'include',
       headers,
       body: fetchConfig.body ?? undefined,
     });

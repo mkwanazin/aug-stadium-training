@@ -6,12 +6,18 @@
  */
 
 /**
- * API base URL - Retrieved from environment variable
- * Set NEXT_PUBLIC_API_BASE_URL in your .env.local file
- * Default: http://localhost:8042 (adjust as needed)
+ * API base URL prefixed to every request the shared API client makes.
+ *
+ * Empty by default, and that is deliberate: the browser calls SAME-ORIGIN paths
+ * (`/v1/auth/...` for the Authentication API, `/transactions-api/...` for the
+ * Transaction Management API) which `web/next.config.ts` rewrites on to the real
+ * backends. Keeping requests same-origin means the HttpOnly `session` cookie is
+ * first-party and neither backend needs CORS headers (project.md NFR-base-6).
+ *
+ * Set NEXT_PUBLIC_API_BASE_URL only to point the client at an absolute origin
+ * (e.g. a deployed environment that does not front the APIs with rewrites).
  */
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8042';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 
 /**
  * Default pagination settings

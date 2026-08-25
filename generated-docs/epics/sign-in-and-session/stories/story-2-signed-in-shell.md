@@ -51,6 +51,18 @@ roles held, never a two-way Importer/Approver branch.
   restyle. This is a **project-wide convention** — the switch lives in the shell built here and
   every later epic's screens inherit it. Recorded in the design digest's Your Decisions.
 
+## Clarifications added during test generation
+
+- **Sign out's busy state.** Neither `project.md` nor the brief says what the Sign out control does
+  while the request is in flight. The pinned contract: it stays **mounted and disabled** (or
+  `aria-disabled`) until `POST /v1/auth/logout` resolves, then navigation happens. A busy label
+  ("Signing out…") is allowed but not required — the disabled state is. This is what makes AC-4
+  falsifiable: an implementation that navigates optimistically fails, because the control detaches.
+- **Sidebar accessible names.** Not named in the story; taken from the design digest's sidebar nav
+  group — `Received files` (link) and `Sign out` (button).
+- **Accessibility target.** Scans run at WCAG 2.2 AA per this epic's feature NFR, which is stricter
+  than `project.md`'s NFR-base-1 baseline of 2.1 AA.
+
 ## Manual test checklist
 
 - Open the app while signed out → you land on the sign-in page, not a welcome page

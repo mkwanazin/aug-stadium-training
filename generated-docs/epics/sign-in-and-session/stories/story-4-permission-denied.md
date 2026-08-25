@@ -43,6 +43,25 @@ rather than silently permitted.
   material. Note that *provisioning* the role after the request is still out of scope for this
   epic (see the epic's Out of Scope).
 
+## Clarifications added during test generation
+
+- **New environment variable required:** `NEXT_PUBLIC_ACCESS_REQUEST_EMAIL` — the administrator
+  address the request-access action mails. It must be added to `web/.env.example` and
+  `web/.env.local`, alongside the auth/transactions base-URL fix already recorded in `project.md`
+  as known configuration drift. The tests stub it to an address that appears in no brief, design or
+  spec, so only code that genuinely reads configuration can render it — a hard-coded literal fails.
+- **The deliverable is a reusable guard, not a one-off panel.** `@/components/auth/RoleGuard`, taking
+  `requiredRoles: string[]` and a `capability` description, with roles resolved from
+  `GET /v1/auth/userinfo`. Later epics attach it to their own routes.
+- **A scoping subtlety worth knowing.** The design's permission-denied copy names the **Approver**
+  role, but `/files` permits Importer *and* Approver — so at `/files` the only genuinely refused
+  account is one holding neither. The tests exercise the guard with `[Approver]` rather than
+  assuming `/files` is Approver-only, which satisfies the design copy without hard-wiring a wrong
+  assumption into the route.
+- **Denial panel shape:** a `role="alert"` region containing a padlock as `role="img"` with a
+  lock-naming accessible name, a heading naming the missing role, an explanation naming the
+  capability and the role actually held, and the request-access button.
+
 ## Manual test checklist
 
 - Sign in with an account whose roles do not allow the files surface → you see a padlock and an explanation instead of the listing

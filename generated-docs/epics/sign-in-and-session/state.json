@@ -9,13 +9,14 @@
     "unverifiedAssumptions": [
       "Verify you can sign in with your real email address: the app sends whatever you type into 'Email address' as the account's username, because that is the field name the sign-in service documents. If the service actually expects a short username (its own examples disagree — one shows an email, one shows a bare name), every sign-in will be refused even when your details are correct, and the tests would not have caught it because they assume the same mapping the app does.",
       "Verify you stay signed in after signing in: the session is a browser cookie set by the sign-in service on one address and then sent to the transactions service on a different one. If the browser refuses to carry it across those two addresses, you will be bounced straight back to sign-in after a successful sign-in — the tests can't see this because they never cross the two real addresses.",
-      "Verify what you see after five refused attempts: the sign-in service documents no separate answer for a locked account, so the app has to infer the lock. If a locked account is refused in exactly the same way as a wrong password, you may get the ordinary 'not accepted' message when you are actually locked out — or the lockout notice when nothing is locked."
+      "Verify what you see after five refused attempts: the sign-in service documents no separate answer for a locked account, so the app has to infer the lock. If a locked account is refused in exactly the same way as a wrong password, you may get the ordinary 'not accepted' message when you are actually locked out — or the lockout notice when nothing is locked.",
+      "Verify what an Importer sees in the menu: your requirements are ambiguous about whether an Importer should see 'File settings'. The access-control table gives the Importer read access to the File Setting record but no access to the administer-file-settings flow, and the design puts that menu item under an 'Administration' heading — so it is currently treated as Approver-only. Sign in as an Importer and confirm that is what you want."
     ],
     "manualTestResults": []
   },
   "phase": "BUILD",
   "stories": {
-    "1": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "1": { "status": "complete", "commit": null, "e2eStatus": "deferred", "startedAt": "2026-08-25T12:35:00.000Z", "completedAt": "2026-08-25T12:57:00.000Z" },
     "2": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
     "3": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
     "4": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null }

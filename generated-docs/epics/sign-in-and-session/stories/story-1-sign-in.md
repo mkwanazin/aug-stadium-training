@@ -45,6 +45,21 @@ carry forward.
   response, so the lock is inferred client-side and the "available again" time is a rule this
   application sets — see the unverified assumption recorded on the epic.
 
+## Clarifications added during test generation
+
+- **The sign-in screen must render a "why you're here" banner.** Story 3's session-end tests fix
+  the redirect contract as `/sign-in?reason=idle-timeout` (idle) and `/sign-in?reason=session-expired`
+  (the 8-hour cap), with the explanation shown on the sign-in screen in a `role="status"` banner.
+  None of Story 1's own acceptance criteria cover this, so it is **new surface for whichever story
+  is built second** — flagged here so it isn't lost between the two. Story 1 owns the screen;
+  Story 3 owns the redirect that lands on it.
+- **Locked-account copy must use a clock time.** The tests assert `/try again after \d{1,2}:\d{2}/`,
+  so render "Try again after 09:45", not a relative "in 15 minutes".
+- **The page must be synchronously renderable.** A client component, or a sync server component
+  composing a `'use client'` form — React Testing Library cannot render an `async` page component.
+- **A refusal arrives as the API client's thrown `APIError` with `statusCode: 401`,** not a plain
+  `Error` instance.
+
 ## Manual test checklist
 
 - Open the sign-in page → you see the PIM Capital Group panel on the left, Email address and Password on the right, each marked required, with a "* Required" line beneath
