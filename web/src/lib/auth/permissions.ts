@@ -91,3 +91,14 @@ export function hasPermission(
 ): boolean {
   return holdsAnyRole(rolesHeld, GRANTS[permission]);
 }
+
+/**
+ * The roles that grant `permission` — what a route-level guard names when it has
+ * to tell a person which role would open the surface.
+ *
+ * Read from the same grant table as `hasPermission`, so a surface's guard and the
+ * menu entry that leads to it can never disagree about who is let in.
+ */
+export function rolesGranting(permission: Permission): readonly string[] {
+  return GRANTS[permission];
+}

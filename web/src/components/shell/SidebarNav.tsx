@@ -17,10 +17,16 @@ const groupLabelId = (heading: string) =>
  * shown and then refused (brief R11 / UI-14), and a group whose every destination
  * is withheld does not leave its heading behind.
  *
- * An account whose roles permit nothing gets no menu at all — which is the honest
- * answer, and the one a permission check gives where a two-way role branch would
- * quietly hand it the Importer's menu.
+ * An account whose roles permit nothing gets no destinations at all — which is the
+ * honest answer, and the one a permission check gives where a two-way role branch
+ * would quietly hand it the Importer's menu. The menu itself still stands, saying
+ * plainly that it is empty: a sidebar that silently loses its menu region reads as
+ * a broken frame rather than an empty one.
  */
+
+/** The one thing this menu says when it has nothing to offer. */
+const NOTHING_PERMITTED = 'No sections are open to the roles you hold.';
+
 export function SidebarNav({ session }: { session: Session }) {
   const pathname = usePathname();
 
@@ -31,15 +37,17 @@ export function SidebarNav({ session }: { session: Session }) {
     ),
   })).filter((group) => group.destinations.length > 0);
 
-  if (permitted.length === 0) {
-    return null;
-  }
-
   const isCurrent = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <nav aria-label="Sections" className="flex flex-col gap-5">
+      {permitted.length === 0 ? (
+        <p className="text-muted-foreground px-2 text-xs leading-relaxed">
+          {NOTHING_PERMITTED}
+        </p>
+      ) : null}
+
       {permitted.map((group) => (
         <div
           key={group.heading ?? 'primary'}

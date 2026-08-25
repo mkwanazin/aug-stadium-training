@@ -83,3 +83,21 @@ Plain-language record of what was built and why, story by story.
 - The idle explanation on the sign-in screen now reads "after 15 minutes of inactivity" rather than
   "without activity" — better English, and it is the wording the automated check for this story
   looks for.
+
+## Story 4 — Permission denied, explained in place
+
+- The permission-denied panel's "Request the Approver role" button now opens the person's own mail
+  app, pre-addressed to a configured administrator and pre-written with who is asking, what they
+  hold today and what the role would open — then confirms on screen naming that address. This is
+  the honest mechanism available: the Authentication API documents no role-request endpoint, so
+  nothing server-side carries or records the request, and the browser cannot send mail itself. The
+  brief already anticipated a mailto stub here, and provisioning the role stays out of scope.
+- The sidebar menu no longer disappears for an account whose roles open nothing. The destinations
+  are still absent (unpermitted items are never shown-and-refused), but the menu region stays and
+  says "No sections are open to the roles you hold." A sidebar that silently loses its whole menu
+  reads as a broken frame rather than an empty one — and this is exactly the state a person meets
+  on the permission-denied screen.
+- `/files` is now guarded by the roles that grant "files.view", so an account holding a role the
+  project grants nothing to (the auth API's own example is Viewer) gets the explanation in place at
+  the address it typed — the route still answers 200, with the menu, the person's name and Sign out
+  all still working.
