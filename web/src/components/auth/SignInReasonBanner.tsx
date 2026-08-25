@@ -28,7 +28,14 @@ const REASONS: Record<string, { lead: string; detail: string }> = {
 
 export function SignInReasonBanner() {
   const reason = useSearchParams().get('reason');
-  const explanation = reason ? REASONS[reason] : undefined;
+  // `Object.hasOwn`, not a bare lookup: the reason comes off the query string, and
+  // `?reason=constructor` (or `toString`, `valueOf`, …) resolves off
+  // `Object.prototype` — truthy, with no `lead` and no `detail`, which would put
+  // an empty banner on the sign-in screen.
+  const explanation =
+    reason !== null && Object.hasOwn(REASONS, reason)
+      ? REASONS[reason]
+      : undefined;
 
   if (!explanation) return null;
 

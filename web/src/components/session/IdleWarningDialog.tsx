@@ -110,7 +110,13 @@ export function IdleWarningDialog({
         </p>
 
         <AlertDialogFooter>
-          <AlertDialogCancel variant="default" className="w-full">
+          {/*
+            `col-span-2` as well as `w-full`: the footer lays a `size="sm"` dialog
+            out as a two-column grid for the usual cancel/confirm pair, so a lone
+            action left to `w-full` fills one column — half the dialog — rather
+            than the width the design gives it. This warning has one action.
+          */}
+          <AlertDialogCancel variant="default" className="col-span-2 w-full">
             {COPY.stay}
           </AlertDialogCancel>
         </AlertDialogFooter>

@@ -200,10 +200,17 @@ export function SignInForm() {
       refusals.current = { identity: '', count: 0 };
       lockout.current = null;
       setOutcome({ kind: 'success' });
+      // Submitting stays true through the redirect below, so the button stays
+      // disabled: the session already exists, and a second click during the
+      // banner's dwell would spend another login attempt and overwrite this ref
+      // — orphaning the timer already scheduled, which then fires unclearable.
       redirectTimer.current = setTimeout(() => {
         router.push(POST_SIGN_IN_ROUTE);
       }, REDIRECT_DELAY_MS);
     } catch (error) {
+      // Nothing was established, so the form is theirs to use again.
+      setIsSubmitting(false);
+
       if (!isAPIErrorWithStatus(error, 401)) {
         setOutcome({ kind: 'unavailable' });
         return;
@@ -218,8 +225,6 @@ export function SignInForm() {
           ? lockAccount(identity)
           : { kind: 'refused' },
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

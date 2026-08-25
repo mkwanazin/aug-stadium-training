@@ -5,13 +5,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { IdleWarningDialog } from '@/components/session/IdleWarningDialog';
 import { logout } from '@/lib/api/auth';
-import { SIGN_IN_ROUTE } from '@/lib/auth/session';
+import { SIGN_IN_ROUTE, useSessionContext } from '@/lib/auth/session';
 import {
   ABSOLUTE_SESSION_MS,
   IDLE_WARNING_LEAD_MS,
   IDLE_WINDOW_MS,
   anchorSessionStart,
   clearSessionStart,
+  markLastActivity,
+  readLastActivity,
 } from '@/lib/auth/session-lifetime';
 
 import type { ReactNode } from 'react';
@@ -24,7 +26,9 @@ import type { ReactNode } from 'react';
  *
  *  - the **idle window** — 15 minutes without activity ends the session, and the
  *    person is warned for the final 60 seconds of it. Activity restarts it, but
- *    only while the warning is not yet showing;
+ *    only while the warning is not yet showing. It is measured across EVERY tab
+ *    of the session (see `markLastActivity`), because a background tab must not
+ *    sign the person out of the one they are working in;
  *  - the **absolute cap** — 8 hours after signing in the session ends however
  *    busy the person has been. Activity does not extend it, which is the whole
  *    point of having it.
@@ -45,6 +49,14 @@ import type { ReactNode } from 'react';
 const TICK_MS = 1000;
 
 /**
+ * How idle the session has to be for the warning to be raised. A warning falling
+ * due inside the current tick is raised now rather than on the next one:
+ * detection is only ever as fine as the tick, and the person is promised a full
+ * 60 seconds' notice rather than 59.
+ */
+const WARN_AT_IDLE_MS = IDLE_WINDOW_MS - IDLE_WARNING_LEAD_MS - TICK_MS;
+
+/**
  * What counts as the person still being here. Deliberately ordinary events, on
  * `document` in the capture-free bubbling phase: anything they do inside the app
  * passes through here.
@@ -63,6 +75,22 @@ type SessionEndReason = 'idle-timeout' | 'session-expired';
 
 export function SessionTimeoutManager({ children }: { children: ReactNode }) {
   const router = useRouter();
+
+  /**
+   * The clock must not run before there IS a session: mounted by the
+   * authenticated layout, this component is on screen while the session check is
+   * still in flight, and while the "we could not confirm that you are signed in"
+   * retry screen is showing. Counting a person who is not signed in towards an
+   * idle timeout would interrupt that screen with a sign-out warning and then
+   * return them to sign in blaming 15 minutes of inactivity.
+   *
+   * Read through the CONTEXT rather than `useSession`, so standing alone — with no
+   * provider above — the clock still runs and this component stays mountable on
+   * its own.
+   */
+  const sharedSession = useSessionContext();
+  const awaitingSession =
+    sharedSession !== null && sharedSession.status !== 'signed-in';
 
   /** Whole seconds left on the warning, or `null` while none is showing. */
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
@@ -100,9 +128,14 @@ export function SessionTimeoutManager({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (awaitingSession) return;
+
     startedAt.current = anchorSessionStart();
     // Arriving on a signed-in screen is itself the person being here.
     lastActivityAt.current = Date.now();
+    // The clock is starting over, so no warning is outstanding — otherwise a flag
+    // left set from a previous run would go on suppressing activity notes.
+    isWarningOpen.current = false;
 
     const noteActivity = () => {
       // While the warning is showing, ordinary activity is ignored on purpose:
@@ -129,17 +162,26 @@ export function SessionTimeoutManager({ children }: { children: ReactNode }) {
         return;
       }
 
-      const idleFor = now - (lastActivityAt.current ?? now);
+      // The idle window belongs to the SESSION, not to this document. Every tab
+      // publishes its own last activity here once a second and reads what the
+      // others have published, so a tab left open in the background cannot sign
+      // the person out from under the tab they are actually working in. Reading
+      // it on the tick is also the throttle: a mousemove does no storage work.
+      const shared = readLastActivity();
+      const local = lastActivityAt.current;
+
+      if (local !== null && (shared === null || local > shared)) {
+        markLastActivity(local);
+      }
+
+      const idleFor = now - Math.max(local ?? now, shared ?? 0);
 
       if (idleFor >= IDLE_WINDOW_MS) {
         void endSession('idle-timeout');
         return;
       }
 
-      // A warning falling due inside the current tick is raised now, not on the
-      // next one: detection is only ever as fine as the tick, and the person is
-      // promised a full 60 seconds' notice rather than 59.
-      if (idleFor >= IDLE_WINDOW_MS - IDLE_WARNING_LEAD_MS - TICK_MS) {
+      if (idleFor >= WARN_AT_IDLE_MS) {
         isWarningOpen.current = true;
         setSecondsLeft(
           Math.min(
@@ -147,6 +189,16 @@ export function SessionTimeoutManager({ children }: { children: ReactNode }) {
             Math.max(0, Math.ceil((IDLE_WINDOW_MS - idleFor) / TICK_MS)),
           ),
         );
+        return;
+      }
+
+      // Back below the warning threshold with a warning showing means another tab
+      // of this session is being used, so the warning is withdrawn. Activity in
+      // THIS document still never dismisses it — `noteActivity` above ignores it
+      // while it is open, so nothing here can be triggered by a stray keystroke.
+      if (isWarningOpen.current) {
+        isWarningOpen.current = false;
+        setSecondsLeft(null);
       }
     }, TICK_MS);
 
@@ -156,19 +208,30 @@ export function SessionTimeoutManager({ children }: { children: ReactNode }) {
         document.removeEventListener(eventName, noteActivity);
       });
     };
-  }, [endSession]);
+  }, [awaitingSession, endSession]);
 
   /** They are still here: close the warning and start the idle window over. */
   const staySignedIn = useCallback(() => {
+    const now = Date.now();
     isWarningOpen.current = false;
-    lastActivityAt.current = Date.now();
+    lastActivityAt.current = now;
+    // Published straight away rather than on the next tick, so any other tab
+    // showing the same warning withdraws it too.
+    markLastActivity(now);
     setSecondsLeft(null);
   }, []);
 
   return (
     <>
+      {/*
+        Derived rather than pushed into state by an effect: while there is no
+        confirmed session the clock is not running, so there is nothing to warn
+        about — a session revoked elsewhere and found by a recheck takes its
+        warning with it instead of leaving one over a surface the person is no
+        longer entitled to.
+      */}
       <IdleWarningDialog
-        secondsLeft={secondsLeft}
+        secondsLeft={awaitingSession ? null : secondsLeft}
         onStaySignedIn={staySignedIn}
       />
       {children}

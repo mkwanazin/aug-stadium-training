@@ -38,7 +38,16 @@ export function middleware(request: NextRequest) {
  *  - `v1/auth` and `transactions-api` — the same-origin backend paths
  *    `next.config.ts` rewrites; redirecting these would break signing in itself;
  *  - `_next` and `favicon.ico` — framework and browser asset requests.
+ *
+ * Each exclusion is anchored to a whole path SEGMENT — `(?:/|$)` — rather than
+ * left as a bare prefix. A bare prefix excludes more than it names: `sign-in`
+ * would also exempt a later `/sign-in-help`, and `transactions-api` a later
+ * `/transactions-api-docs`, quietly un-gating routes nobody decided to un-gate.
+ * Since the whole point of stating this as an exclusion is that anything not
+ * named is protected, the names have to mean exactly themselves.
  */
 export const config = {
-  matcher: ['/((?!sign-in|v1/auth|transactions-api|_next|favicon.ico).*)'],
+  matcher: [
+    '/((?!sign-in(?:/|$)|v1/auth(?:/|$)|transactions-api(?:/|$)|_next(?:/|$)|favicon\\.ico$).*)',
+  ],
 };

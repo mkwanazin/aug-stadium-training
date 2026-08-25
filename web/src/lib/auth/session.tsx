@@ -158,6 +158,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 }
 
 /**
+ * The SHARED session check, or `null` when there is no `SessionProvider` above.
+ *
+ * Unlike `useSession` this never starts a check of its own. It is for components
+ * that want to defer to a session gate when one is present — the session clock,
+ * which must not run before there is a confirmed session — without becoming
+ * unmountable outside the authenticated layout.
+ */
+export function useSessionContext(): SessionSnapshot | null {
+  return useContext(SessionContext);
+}
+
+/**
  * Who is signed in, and what they may do.
  *
  * Works with or without a `SessionProvider` above it: inside the authenticated

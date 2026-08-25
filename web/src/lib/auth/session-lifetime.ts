@@ -30,6 +30,16 @@ export const ABSOLUTE_SESSION_MS = 8 * 60 * 60 * 1000;
 const SESSION_START_KEY = 'transaction-file-importer.session-started-at';
 
 /**
+ * When the person was last doing something, in the same shared storage.
+ *
+ * Shared rather than per-tab because the idle window belongs to the SESSION, not
+ * to a document: a tab left open in the background must not sign the person out
+ * from under the tab they are actually working in. Every tab publishes its own
+ * activity here and reads what the others have published.
+ */
+const LAST_ACTIVITY_KEY = 'transaction-file-importer.last-activity-at';
+
+/**
  * `localStorage` is not always there to be had — it does not exist during a
  * server render, and a browser may refuse it outright (private mode, blocked
  * site data, quota). Every access goes through here so a refusal degrades to
@@ -45,25 +55,54 @@ function withStorage<T>(operation: (store: Storage) => T, fallback: T): T {
   }
 }
 
-/** Records the moment a session began. Called by the sign-in that created it. */
-export function markSessionStart(at: number = Date.now()): void {
-  withStorage(
-    (store) => store.setItem(SESSION_START_KEY, String(at)),
-    undefined,
-  );
+function writeTimestamp(key: string, at: number): void {
+  withStorage((store) => store.setItem(key, String(at)), undefined);
 }
 
-/** When the current session began, or `null` if nothing was recorded. */
-export function readSessionStart(): number | null {
+function readTimestamp(key: string): number | null {
   return withStorage((store) => {
-    const recorded = Number(store.getItem(SESSION_START_KEY));
+    const recorded = Number(store.getItem(key));
     return Number.isFinite(recorded) && recorded > 0 ? recorded : null;
   }, null);
 }
 
-/** Forgets the recorded start — every path that ends a session calls this. */
+/**
+ * Records the moment a session began. Called by the sign-in that created it.
+ *
+ * Signing in is also the person's most recent activity, so the shared idle
+ * window starts from here too — otherwise the first tab to mount would read an
+ * activity stamp left behind by the session before this one.
+ */
+export function markSessionStart(at: number = Date.now()): void {
+  writeTimestamp(SESSION_START_KEY, at);
+  writeTimestamp(LAST_ACTIVITY_KEY, at);
+}
+
+/** When the current session began, or `null` if nothing was recorded. */
+export function readSessionStart(): number | null {
+  return readTimestamp(SESSION_START_KEY);
+}
+
+/** Publishes this tab's most recent activity to the whole session. */
+export function markLastActivity(at: number = Date.now()): void {
+  writeTimestamp(LAST_ACTIVITY_KEY, at);
+}
+
+/** The most recent activity ANY tab of this session reported, or `null`. */
+export function readLastActivity(): number | null {
+  return readTimestamp(LAST_ACTIVITY_KEY);
+}
+
+/**
+ * Forgets everything recorded about this session's lifetime — its start and its
+ * activity. Every path that ends a session calls this, so nothing is left behind
+ * to age the next session before it has begun.
+ */
 export function clearSessionStart(): void {
-  withStorage((store) => store.removeItem(SESSION_START_KEY), undefined);
+  withStorage((store) => {
+    store.removeItem(SESSION_START_KEY);
+    store.removeItem(LAST_ACTIVITY_KEY);
+  }, undefined);
 }
 
 /**

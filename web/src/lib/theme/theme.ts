@@ -25,20 +25,44 @@ const DARK_CLASS = 'dark';
 const isTheme = (value: unknown): value is Theme =>
   value === 'light' || value === 'dark';
 
-/** Storage is unavailable during server rendering, and blocked in some browsers. */
-function storage(): Storage | null {
-  return typeof window === 'undefined' ? null : window.localStorage;
+/**
+ * Storage is not always there to be had — it does not exist during a server
+ * render, and a browser may refuse it outright (private mode, blocked site data,
+ * quota). Merely READING `window.localStorage` throws in the blocked case, so
+ * every access goes through here and a refusal degrades to the default instead
+ * of throwing. That matters more here than almost anywhere else: `currentTheme`
+ * is the `useSyncExternalStore` snapshot (see `@/lib/theme/useTheme`), so a
+ * throw would take down every screen that renders the switch rather than just
+ * losing the remembered choice.
+ */
+function withStorage<T>(operation: (store: Storage) => T, fallback: T): T {
+  if (typeof window === 'undefined') return fallback;
+
+  try {
+    return operation(window.localStorage);
+  } catch {
+    return fallback;
+  }
 }
 
 /** The remembered choice, or `null` when the person has never made one. */
 export function readStoredTheme(): Theme | null {
-  const stored = storage()?.getItem(THEME_STORAGE_KEY);
+  const stored = withStorage<string | null>(
+    (store) => store.getItem(THEME_STORAGE_KEY),
+    null,
+  );
   return isTheme(stored) ? stored : null;
 }
 
-/** Remembers the choice so it survives the next load. */
+/**
+ * Remembers the choice so it survives the next load.
+ *
+ * The listeners are notified even when the write was refused: the switch must
+ * still move for the rest of this visit, it just will not be remembered next
+ * time.
+ */
 export function storeTheme(theme: Theme): void {
-  storage()?.setItem(THEME_STORAGE_KEY, theme);
+  withStorage((store) => store.setItem(THEME_STORAGE_KEY, theme), undefined);
   for (const listener of listeners) listener();
 }
 
