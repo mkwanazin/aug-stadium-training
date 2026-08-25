@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "file-settings-administration",
+    "name": "File settings administration",
+    "createdAt": "2026-08-25T13:59:21.309Z",
+    "dependsOn": [
+      "sign-in-and-session",
+      "upload-a-file",
+      "received-files"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [
+      "Verify that every file setting you expect to see actually appears in the listing: the settings service reads a view that requires a setting to have at least one folder declared against it, so a setting with none is silently left out of the response. If any of your settings have no folder yet they will be missing from the screen with nothing to say they exist, and no automated test can catch it because the tests are built from the same response.",
+      "Verify what happens when you save a setting that has since been removed: the save is a plain update with no existence check, so it changes nothing and still answers as though it worked. If that happens you will see a confirmation for a change that was never made, and the setting will be exactly as it was when you look again.",
+      "Verify what you see when you save a setting whose source, type and direction already belong to another one: the service answers with a server-error status carrying the words 'File Setting already exists', and the app reads those words to show the clash against those three fields. If that wording ever changes you will see an unexplained failure instead of a message naming the clash."
+    ],
+    "manualTestResults": []
+  },
+  "phase": "READY-TO-BUILD",
+  "stories": {
+    "1": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "2": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "3": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "4": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
+  "halt": null,
+  "lastUpdated": "2026-08-25T14:04:36.326Z"
+}
