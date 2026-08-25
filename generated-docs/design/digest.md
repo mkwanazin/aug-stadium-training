@@ -13,7 +13,14 @@ A financial-services back-office console for bringing transaction files into a p
 
 ## Your Decisions
 
-*Nothing yet — this fills in as you settle things while we build.*
+- **Received files — the Standing column is worked out from the step a file last completed, not from the status the service returns** *(received-files, 2026-08-25)*
+  The file service reports the workflow engine's own six statuses (Idle, Running, Finished, Suspended, Faulted, Cancelled), not the eight standings drawn in the design. Standing is derived from the last completed step, named in the design's words, with a faulted or cancelled file overriding that, and anything unrecognised shown plainly on a neutral badge. Overrides the design's implied one-to-one mapping.
+- **Received files — the `Uploaded by` column is not built** *(received-files, 2026-08-25)*
+  No field in the file service names who uploaded a file, and no lookup endpoint exists that would supply one. The column is left out until the backend exposes it. Overrides the design's Approver-only column and the review screen's meta-grid entry is unaffected.
+- **Received files — the 90-day retention footnote is shown as designed** *(received-files, 2026-08-25)*
+  Answers the Uncertainty asking whether 90 days is the real retention period.
+- **Received files — a row's `Open` action goes to that file's Processing history** *(received-files, 2026-08-25)*
+  The design never says where Open leads. Review and Diagnose keep their own destinations; Open becomes the general "show me this file" route.
 
 ---
 
