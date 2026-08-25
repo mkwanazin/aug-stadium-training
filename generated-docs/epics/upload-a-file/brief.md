@@ -10,7 +10,20 @@ Inherits roles, auth, data source, compliance, and styling from project.md.
 
 An Importer registers a new delimited file against a chosen file setting and is told plainly whether it was accepted or refused, with the chosen setting kept for a second attempt.
 
-**Shared surface introduced by this epic:** this is the first epic to build the in-app application shell — the 224px fixed sidebar carrying the brand lockup, the nav group (`Received files`, `Upload a file`, `Import activity`, an `Administration` heading with `File settings` and `Users and roles`), and the signed-in block (role badge + `Sign out`) pinned to the bottom. Every later in-app screen (Received files, File review, Diagnosis, Processing history, Import activity) inherits this shell unchanged — build it as a shared layout, not something re-derived per screen.
+**Shared surface inherited by this epic:** the in-app application shell is **not** built here. It is built by `sign-in-and-session` (its story 2, `story-2-signed-in-shell`) and consumed unchanged. That shell delivers, at `web/src/app/(app)/layout.tsx`:
+
+- the 224px fixed sidebar carrying the brand lockup;
+- the nav group — `Received files`, `Upload a file`, `Import activity`, an `Administration` heading with `File settings`. The de-scoped `Users and roles` entry is **omitted entirely**, not rendered-and-dead;
+- the signed-in block pinned to the bottom: the person's name, a badge per role they hold, and `Sign out`, which stays mounted and disabled until `POST /v1/auth/logout` resolves before navigating;
+- a user-settable light/dark switch;
+- the protected-surface session check via `GET /v1/auth/userinfo`, redirecting to sign-in on 401;
+- the reusable role guard `@/components/auth/RoleGuard` (`requiredRoles: string[]` plus a `capability` description), which renders the permission-denied panel in place of the content region while nav and `Sign out` keep working.
+
+Nav visibility is a permission test against the roles the account actually holds — **never** a two-way Importer/Approver branch.
+
+**This epic's only interaction with the shell** is that the already-existing `Upload a file` nav item and the Received-files header action route to the screen built here, and that this route is wrapped in the inherited `RoleGuard` so an Approver reaching `/upload` directly gets the in-place explanation rather than a refusal or a blank page. Do not re-create the sidebar, the nav group, the signed-in block, sign out, the theme switch, or the session check.
+
+> These shell details were read off `sign-in-and-session` while that epic was still in BUILD and not yet merged. Treat the names and signatures above as the expected contract, and re-verify them against `main` at BUILD — `/start` re-checks this plan against `main` when it cuts the branch.
 
 ---
 
@@ -63,7 +76,7 @@ Scoped to what this epic reads or creates. Roles/auth/session data is inherited 
 ## Feature NFRs
 
 - **FNFR-1:** Accepted file extensions are `.csv`, `.txt`, `.dat`, `.psv`, `.tsv` (case-insensitive); a non-matching extension is refused client-side before any network call is made, in addition to the server-side enforcement of BR2.
-- **FNFR-2:** Maximum upload size is 20 MB per the design's drop-target copy ("Delimited files only, up to 20 MB"). No size limit is stated in `Transaction_Management_API.yaml` — confirm the real ceiling against the Transactions API during BUILD before hard-coding 20 MB as an enforced client-side limit.
+- **FNFR-2 — resolved at planning: no client-side size limit is enforced.** The design's drop-target copy reads "Delimited files only, up to 20 MB", but `Transaction_Management_API.yaml` declares no size limit anywhere, so 20 MB is drawn copy rather than a known ceiling. The user decided the screen enforces **no** size limit: the file is sent and whatever the service reports is surfaced verbatim through the refusal banner. Two consequences to build to — (1) do **not** add a client-side size check, and (2) the drop target's sub-line must not promise a 20 MB ceiling the screen does not enforce, so drop the size clause or reword it without a number. This overrides the design's drop-target copy for this element.
 - **FNFR-3:** The upload submission is a single synchronous round trip to `POST /v1/files/upload`; `Submit for import` shows a busy/disabled state until the response returns, per baseline NFR-base-5 (error UX / retry affordance) — a connection failure or 500 must surface a retryable error, not a silent stall.
 
 ---
@@ -80,7 +93,10 @@ Scoped to what this epic reads or creates. Roles/auth/session data is inherited 
 
 ## Notes & Caveats
 
-- **Shared shell, built once.** The 224px sidebar, nav group, signed-in block and `Sign out` button are introduced by this epic and must be built as a shared layout component, not duplicated per screen — every later in-app epic assumes it already exists.
+- **Shared shell, already built — consume it, do not re-derive it.** The 224px sidebar, nav group, signed-in block and `Sign out` button are delivered by `sign-in-and-session` story 2 as `web/src/app/(app)/layout.tsx`. This epic adds one route inside that layout and changes nothing about the layout itself. Planning or building a second shell here is a defect, not a duplication to tidy up later.
+- **Inherited project-wide convention — light and dark are a user switch.** A settled decision recorded on the `sign-in-and-session` branch: people get an explicit light/dark control in the sidebar, which overrides the device preference and is remembered per person, rather than the application silently following the device setting. The control lives in the inherited shell, so this screen gets it for free — provided the Upload screen is styled from design tokens only. No hex literals in components, per the styling-centralisation policy; both themes then follow automatically.
+- **Inherited role-gating, including the direct-address case.** An Approver may not upload. The shell already hides the `Upload a file` nav item and header action from them; this epic additionally wraps `/upload` in the inherited `@/components/auth/RoleGuard` so an Approver typing the address directly sees the padlock-and-explanation panel inside the shell, with nav and `Sign out` still working — the same surface `sign-in-and-session` story 4 delivers. No new denial panel is needed here.
+- **Reuse, don't rebuild, the plumbing.** `sign-in-and-session` also lands the API client conventions (`web/src/lib/api/client.ts` — never a bare `fetch()` in a component), typed auth/error helpers under `web/src/lib/api/`, and shared feedback components. R7's in-app acceptance notice should use the existing feedback/toast surface rather than a hand-rolled one. Confirm the exact module names against `main` at BUILD.
 - **Translate, don't copy** (per the design digest): the prototype's fixture "Recently submitted" rows and hard-coded file list must be replaced by real data from the Transactions API; the prototype's placeholder submit handler (which only flips a local outcome flag) must be replaced by the real `POST /v1/files/upload` call, with its `DefaultResponse` mapped into the accept/refuse banners; the sidebar's `Sign out` control must call the real logout flow inherited from `sign-in-and-session`, not an inert prototype nav item; inline SVG icons (upload arrow, tick, warning-triangle) become icon components; the artboard's hand-rolled CSS classes become design tokens and composed Shadcn primitives.
 - **`Uploaded by`** is displayed elsewhere in the design (Received files, File review meta grid) but has no property on the spec's `FileLog` schema — flagged in the digest's Uncertainties. Not a concern for this epic (the Upload screen itself never shows `Uploaded by`), but worth carrying forward to the epics that do.
 - **"Recently submitted" scoping is undefined.** Neither the design nor the API spec states how many entries or what recency window the aside shows. Recommend the most recent 5 file-log entries by `ProcessDate` descending; confirm with the user during BUILD if a different count or window is wanted.

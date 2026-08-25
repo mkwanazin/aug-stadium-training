@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "upload-a-file",
+    "name": "Upload a file",
+    "createdAt": "2026-08-25T12:32:39.011Z",
+    "dependsOn": [
+      "sign-in-and-session"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [
+      "Verify that a file the system refuses actually shows as refused: the upload service answers with the same 200 OK whether a file is accepted or turned away, and the difference is carried in a text field whose possible values are documented nowhere. The app has to guess which value means refused. If the guess is wrong you will see a green confirmation for a file that was never registered, and no automated test can catch it because the tests are built from the same guess.",
+      "Verify what happens when you upload the same file twice: the app assumes a duplicate is refused by the upload call itself and shown as a refusal on this screen. If the service instead accepts the file and only discovers the duplicate later during processing, your second upload will be confirmed as accepted and the problem will surface as a faulted file elsewhere rather than as a refusal here.",
+      "Verify the line that appears under the file setting you choose: it is meant to name the delimiter, the staging target and the process, but the settings service documents no field carrying the delimiter wording, so the app infers it from another field. If that inference is wrong the line may name the wrong delimiter or omit it entirely."
+    ],
+    "manualTestResults": []
+  },
+  "phase": "READY-TO-BUILD",
+  "stories": {
+    "1": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "2": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
+  "halt": null,
+  "lastUpdated": "2026-08-25T12:44:12.380Z"
+}
