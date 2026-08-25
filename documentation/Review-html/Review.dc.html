@@ -1,0 +1,771 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>/*TOKENS*/
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+    /* Token layer — lifted from the incoming design (PIM Capital Group).
+       Light palette extracted from https://www.pimcapitalgroup.com/za/;
+       dark derived from the same hues. Overlays flip black->white on dark. */
+    :root {
+      --font-heading: Montserrat, 'Helvetica Neue', Arial, sans-serif;
+      --font-body: Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+      --brand-primary: #A22921;
+      --brand-secondary: #98C8E8;
+      --brand-accent: #FFAC66;
+      --color-background: #FFFFFF;
+      --color-surface: #FAF7F6;
+      --color-text: #191614;
+      --color-text-muted: #6B625E;
+      --color-success: #15803D;
+      --color-warning: #CA8A04;
+      --color-error: #DC2626;
+      --color-info: #0369A1;
+
+      --overlay-4: rgba(0,0,0,0.04);
+      --overlay-8: rgba(0,0,0,0.08);
+      --overlay-12: rgba(0,0,0,0.12);
+      --overlay-20: rgba(0,0,0,0.20);
+
+      --text-muted: var(--color-text-muted);
+      --text-on-brand: var(--color-surface);
+      --surface-page: var(--color-background);
+      --surface-card: var(--color-surface);
+      --surface-hover: var(--overlay-4);
+      --surface-active: var(--overlay-8);
+      --border-subtle: var(--overlay-8);
+      --border-default: var(--overlay-20);
+      --focus-ring: var(--brand-primary);
+      --selected-row: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+
+      --text-2xl: 1.5rem;
+      --text-3xl: 2.6719rem;
+      --lh-base: 1.625;
+      --type-h1: 400 var(--text-3xl)/1 var(--font-heading);
+      --type-h2: 400 var(--text-2xl)/1.2 var(--font-heading);
+      --type-h3: 400 1.125rem/1.3 var(--font-heading);
+      --type-control: 600 13px/1.4 var(--font-body);
+      --type-ui: 400 13px/1.5 var(--font-body);
+      --type-label: 600 12px/1.4 var(--font-body);
+      --type-hint: 400 11px/1.4 var(--font-body);
+      --type-eyebrow: 600 11px/1.6 var(--font-body);
+      --tracking-eyebrow: 0.04em;
+      --tracking-badge: 0.02em;
+
+      --space-3: 6px;
+      --space-5: 10px;
+      --gap-inline: 8px;
+      --pad-control: 8px 16px;
+      --pad-cell: 10px 12px;
+      --pad-card: 16px;
+      --control-height: 34px;
+
+      --radius-xs: 3px;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --radius-pill: 999px;
+      --radius-control: var(--radius-sm);
+      --radius-panel: var(--radius-md);
+
+      --shadow-sm: 0 1px 2px 0 rgba(25,22,20,0.06);
+      --shadow-md: 0 0 6px rgba(0,0,0,0.2);
+      --shadow-lg: 0 6px 28px rgba(0,0,0,0.08);
+      --shadow-inset-selected: inset 3px 0 0 var(--brand-primary);
+
+      --easing-standard: cubic-bezier(0.25, 1, 0.33, 1);
+      --transition-base: 200ms var(--easing-standard);
+      --hover-brightness: 0.92;
+      --press-brightness: 0.82;
+      --disabled-opacity: 0.5;
+      --scrim: rgba(25,22,20,0.42);
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --brand-primary: #D25D56;
+      --brand-secondary: #ABCDE3;
+      --brand-accent: #FBA760;
+      --color-background: #1B1818;
+      --color-surface: #302C2C;
+      --color-text: #EEEDED;
+      --color-text-muted: #B1ABAA;
+      --color-success: #61D18B;
+      --color-warning: #F5BD47;
+      --color-error: #EB7070;
+      --color-info: #4CAFE6;
+      --overlay-4: rgba(255,255,255,0.04);
+      --overlay-8: rgba(255,255,255,0.08);
+      --overlay-12: rgba(255,255,255,0.12);
+      --overlay-20: rgba(255,255,255,0.20);
+      --text-on-brand: #302C2C;
+      --shadow-sm: 0 1px 2px 0 rgba(25,22,20,0.12);
+      --shadow-md: 0 0 6px rgba(0,0,0,0.35);
+      --shadow-lg: 0 6px 28px rgba(0,0,0,0.16);
+      --scrim: rgba(12,10,10,0.58);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font-body); }
+    a { color: var(--brand-primary); text-decoration: none; }
+    a:hover { color: var(--color-text); }
+
+    /* ---- App frame ---- */
+    .app { display: flex; flex-direction: column; background: var(--color-background); color: var(--color-text); font: var(--type-ui); }
+    .harness { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 16px; background: var(--color-surface); border-bottom: 1px solid var(--overlay-12); flex-shrink: 0; }
+    .harness-t { font-size: 11px; letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-muted); }
+    .body { flex: 1; display: grid; grid-template-columns: 224px 1fr; min-height: 0; }
+    .side { background: var(--color-surface); border-right: 1px solid var(--overlay-8); padding: 20px 12px; display: flex; flex-direction: column; gap: 24px; }
+    .brandmark { font-family: var(--font-heading); font-weight: 400; font-size: 17px; line-height: 1.2; color: var(--brand-primary); }
+    .brandsub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .nav { display: flex; flex-direction: column; gap: 2px; }
+    .nav-i { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: var(--radius-sm); font: var(--type-ui); font-weight: 500; color: var(--text-muted); background: transparent; cursor: pointer; text-align: left; transition: background var(--transition-base), color var(--transition-base); }
+    .nav-i:hover { background: var(--surface-hover); color: var(--color-text); }
+    .nav-i.on { background: var(--selected-row); color: var(--brand-primary); font-weight: 600; box-shadow: var(--shadow-inset-selected); }
+    .nav-sec { font: var(--type-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-muted); padding: 10px 10px 2px; }
+    .signed { margin-top: auto; padding: 14px 8px 0; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--overlay-8); }
+    .eyebrow { font: var(--type-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-muted); }
+    .pane { display: flex; flex-direction: column; min-width: 0; }
+    .head { padding: 20px 28px 16px; border-bottom: 1px solid var(--overlay-8); flex-shrink: 0; }
+    .crumb { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+    .h1 { font: var(--type-h2); margin: 0; }
+    .main { padding: 20px 28px 28px; display: flex; flex-direction: column; gap: 20px; min-width: 0; overflow: auto; }
+
+    /* ---- Controls ---- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-3); padding: var(--pad-control); border: 1px solid transparent; border-radius: var(--radius-control); font: var(--type-control); cursor: pointer; user-select: none; transition: filter var(--transition-base), background var(--transition-base); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn-primary { background: var(--brand-primary); color: var(--text-on-brand); }
+    .btn-secondary { background: var(--brand-secondary); color: var(--text-on-brand); }
+    .btn-destructive { background: var(--color-error); color: var(--text-on-brand); }
+    .btn-primary:hover, .btn-secondary:hover, .btn-destructive:hover { filter: brightness(var(--hover-brightness)); }
+    .btn-primary:active, .btn-secondary:active, .btn-destructive:active { filter: brightness(var(--press-brightness)); }
+    .btn-ghost { background: transparent; color: var(--color-text); border-color: var(--border-default); }
+    .btn-ghost:hover { background: var(--surface-hover); }
+    .btn-ghost:active { background: var(--surface-active); }
+    .btn:disabled { opacity: var(--disabled-opacity); cursor: not-allowed; }
+    .btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+    .ctl { font-family: var(--font-body); font-size: 13px; padding: 8px 12px; border: 1px solid var(--border-default); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); width: 100%; transition: border-color var(--transition-base), box-shadow var(--transition-base); }
+    .ctl:focus { outline: none; border-color: var(--brand-primary); box-shadow: 0 0 0 3px var(--overlay-4); }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .label { font: var(--type-label); color: var(--color-text); }
+    .req { color: var(--brand-primary); }
+    .hint { font: var(--type-hint); color: var(--text-muted); }
+    .err { font: var(--type-hint); color: var(--color-error); display: flex; align-items: center; gap: 5px; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-pill); font: var(--type-eyebrow); letter-spacing: var(--tracking-badge); }
+    .badge-neutral { background: var(--overlay-8); color: var(--color-text); }
+
+    .alert { display: flex; align-items: center; gap: var(--space-5); padding: 12px 16px; border-radius: var(--radius-panel); background: var(--surface-card); color: var(--color-text); font: var(--type-ui); }
+    .alert strong { font-weight: 600; }
+
+    .card { background: var(--surface-card); border-radius: var(--radius-lg); padding: var(--pad-card); font: var(--type-ui); color: var(--color-text); box-shadow: var(--shadow-sm); }
+
+    /* ---- Meta strip: hairline grid ---- */
+    .metagrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--overlay-8); border: 1px solid var(--overlay-8); border-radius: var(--radius-panel); overflow: hidden; }
+    .metagrid > div { background: var(--color-surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+
+    /* ---- Tabs ---- */
+    .tablist { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--overlay-12); }
+    .tab { padding: 8px 14px; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--text-muted); transition: color var(--transition-base), border-color var(--transition-base); }
+    .tab:hover { color: var(--color-text); }
+    .tab.on { border-bottom-color: var(--brand-primary); color: var(--brand-primary); font-weight: 600; }
+    .tabpanel { padding: var(--pad-card); font: var(--type-ui); color: var(--color-text); background: var(--surface-card); border-radius: 0 0 var(--radius-panel) var(--radius-panel); }
+
+    /* ---- DataTable ---- */
+    .dt { width: 100%; border-collapse: separate; border-spacing: 0; font: var(--type-ui); color: var(--color-text); background: var(--surface-card); border-radius: var(--radius-panel); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .dt thead th { text-align: left; padding: var(--pad-cell); background: var(--surface-page); color: var(--text-muted); font: var(--type-eyebrow); text-transform: uppercase; letter-spacing: var(--tracking-eyebrow); border-bottom: 1px solid var(--border-subtle); cursor: pointer; white-space: nowrap; transition: background var(--transition-base); }
+    .dt thead th:hover { background: var(--surface-hover); color: var(--color-text); }
+    .dt th.on { color: var(--color-text); }
+    .dt td { padding: var(--pad-cell); border-bottom: 1px solid var(--overlay-4); }
+    .dt tbody tr:last-child td { border-bottom: 0; }
+    .dt tbody tr { transition: background var(--transition-base); }
+    .sortmark { font-size: 9px; margin-left: 4px; color: var(--text-muted); opacity: 0.5; }
+    .sortmark.on { color: var(--brand-primary); opacity: 1; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pager { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-5); padding: var(--pad-cell); background: var(--surface-card); border: 1px solid var(--border-subtle); border-top: 0; border-radius: 0 0 var(--radius-panel) var(--radius-panel); font-family: var(--font-body); font-size: 12px; color: var(--text-muted); margin-top: -1px; }
+    .pagerbtn { padding: 3px 8px; border: 1px solid var(--border-default); border-radius: var(--radius-xs); background: transparent; color: var(--color-text); font-family: var(--font-body); font-size: 12px; cursor: pointer; transition: background var(--transition-base); }
+    .pagerbtn:hover { background: var(--surface-hover); }
+    .pagerbtn:disabled { opacity: var(--disabled-opacity); cursor: not-allowed; }
+
+    /* ---- Modal ---- */
+    .veil { position: absolute; inset: 0; background: var(--scrim); display: flex; align-items: center; justify-content: center; z-index: 20; }
+    .dlg { width: 460px; background: var(--surface-card); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-lg); color: var(--color-text); }
+    .dlg h3 { font: var(--type-h3); margin: 0 0 8px; }
+
+    .mono { font-variant-numeric: tabular-nums; }
+    /*END-TOKENS*/</style>
+</helmet>
+
+<div class="app" style="position: relative; width: 1440px; height: 1040px" data-theme="{{ theme }}">
+
+  <div class="harness">
+    <span class="harness-t">Prototype harness — fixture data, no server</span>
+    <span style="display: flex; align-items: center; gap: 8px">
+      <span class="harness-t">Viewing as</span>
+      <sc-for list="{{ roleChoices }}" as="r" hint-placeholder-count="2">
+        <button type="button" class="btn btn-sm {{ r.cls }}" onClick="{{ r.pick }}">{{ r.label }}</button>
+      </sc-for>
+      <button type="button" class="btn btn-sm btn-ghost" onClick="{{ resetDemo }}">Reset demo data</button>
+    </span>
+  </div>
+
+  <div class="body">
+
+    <nav class="side">
+      <div style="padding: 0 8px">
+        <div class="brandmark">PIM Capital Group</div>
+        <div class="brandsub">Transaction file importer</div>
+      </div>
+
+      <div class="nav">
+        <button type="button" class="nav-i on">Received files</button>
+        <sc-if value="{{ canUpload }}" hint-placeholder-val="{{ false }}">
+          <button type="button" class="nav-i">Upload a file</button>
+        </sc-if>
+        <button type="button" class="nav-i">Import activity</button>
+        <div class="nav-sec">Administration</div>
+        <button type="button" class="nav-i">File settings</button>
+        <button type="button" class="nav-i">Users and roles</button>
+      </div>
+
+      <div class="signed">
+        <div class="eyebrow">Signed in</div>
+        <div style="line-height: 1.4">{{ userName }}</div>
+        <div style="font-size: 12px; color: var(--text-muted)">{{ userEmail }}</div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px">
+          <span class="badge" style="background: {{ roleBadgeBg }}; color: var(--text-on-brand)">{{ roleLabel }}</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-ghost" style="margin-top: 8px; align-self: flex-start">Sign out</button>
+      </div>
+    </nav>
+
+    <div class="pane">
+      <header class="head">
+        <div class="crumb"><a href="#">Imports</a> / File</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+            <h1 class="h1">Salary run April.csv</h1>
+            <span class="badge" style="background: var(--color-warning); color: var(--text-on-brand)">Validated</span>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <sc-if value="{{ canDecide }}" hint-placeholder-val="{{ true }}">
+              <button type="button" class="btn btn-secondary" onClick="{{ askRejectAll }}">
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true" style="vertical-align: -2px"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM5.6 5l2.4 2.4L10.4 5l1 1L9 8.4l2.4 2.5-1 1L8 9.4 5.6 12l-1-1 2.4-2.5L4.6 6l1-1z"></path></svg>
+                Reject all
+              </button>
+            </sc-if>
+            <sc-if value="{{ canDecide }}" hint-placeholder-val="{{ true }}">
+              <button type="button" class="btn btn-primary" onClick="{{ askApproveAll }}">
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true" style="vertical-align: -2px"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm3.5 4.7-4 5.3a.7.7 0 0 1-1 .1L4 8.5l1-1 1.9 2 3.4-4.5 1.2.7z"></path></svg>
+                Approve all
+              </button>
+            </sc-if>
+            <button type="button" class="btn btn-ghost">Download data</button>
+            <button type="button" class="btn btn-destructive">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true" style="vertical-align: -2px"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5zm2 1v7h1V6H7zm2 0v7h1V6H9z"></path></svg>
+              Cancel file
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="main">
+
+        <div class="alert" style="border-left: 4px solid var(--color-info)">
+          <span style="color: var(--color-info); display: inline-flex; flex: 0 0 auto">
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM8 4.2a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8zM7.2 7h1.6v4.8h.9V13H6.3v-1.2h.9V8.2h-.9V7h.9z"></path></svg>
+          </span>
+          <div style="flex: 1 1 auto; min-width: 0">
+            <strong style="color: var(--color-info)">Ready to review. </strong>Salary run April.csv is ready to review — 20 transactions imported.
+          </div>
+        </div>
+
+        <div class="metagrid">
+          <sc-for list="{{ detailMeta }}" as="m" hint-placeholder-count="7">
+            <div>
+              <div class="eyebrow">{{ m.label }}</div>
+              <div class="{{ m.cls }}">{{ m.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="width: 100%">
+          <div class="tablist">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+              <button type="button" class="tab {{ t.cls }}" onClick="{{ t.pick }}">{{ t.label }}</button>
+            </sc-for>
+          </div>
+
+          <div class="tabpanel">
+
+            <sc-if value="{{ showTx }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px">
+                  <span class="mono" style="color: var(--text-muted); font-size: 12px">{{ progressLine }}</span>
+                  <span style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-muted)">
+                    <span>Times in South African time (GMT+2)</span>
+                    <sc-if value="{{ canDecide }}" hint-placeholder-val="{{ true }}">
+                      <button type="button" class="btn btn-sm btn-ghost" onClick="{{ toggleRevealAll }}">
+                        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.6 8S3.9 3.8 8 3.8 14.4 8 14.4 8s-2.3 4.2-6.4 4.2S1.6 8 1.6 8Z"></path><circle cx="8" cy="8" r="1.8"></circle><path style="display: {{ slashDisplay }}" d="m2.6 13.4 10.8-10.8"></path></svg>
+                        {{ revealAllLabel }}
+                      </button>
+                    </sc-if>
+                  </span>
+                </div>
+
+                <table class="dt">
+                  <thead>
+                    <tr>
+                      <sc-for list="{{ txColumns }}" as="c" hint-placeholder-count="8">
+                        <th class="{{ c.onCls }}" style="text-align: {{ c.align }}" onClick="{{ c.sort }}">{{ c.label }}<span class="sortmark {{ c.markCls }}">{{ c.mark }}</span></th>
+                      </sc-for>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ txns }}" as="t" hint-placeholder-count="12">
+                      <tr style="background: {{ t.bg }}">
+                        <td class="mono" style="font-weight: 500">{{ t.Reference }}</td>
+                        <td class="mono" style="color: var(--text-muted)">{{ t.TransactionDate }}</td>
+                        <td class="mono" style="letter-spacing: 0.04em; color: {{ t.acctColour }}">
+                          {{ t.AccountNumber }}
+                          <sc-if value="{{ t.canReveal }}" hint-placeholder-val="{{ true }}">
+                            <button type="button" onClick="{{ t.toggleReveal }}" title="{{ t.revealTitle }}" aria-label="{{ t.revealTitle }}" style="margin-left: 6px; padding: 0; border: 0; background: transparent; color: var(--text-muted); cursor: pointer; vertical-align: -2px">
+                              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.6 8S3.9 3.8 8 3.8 14.4 8 14.4 8s-2.3 4.2-6.4 4.2S1.6 8 1.6 8Z"></path><circle cx="8" cy="8" r="1.8"></circle><path style="display: {{ t.slashDisplay }}" d="m2.6 13.4 10.8-10.8"></path></svg>
+                            </button>
+                          </sc-if>
+                        </td>
+                        <td>
+                          <div>{{ t.Description }}</div>
+                          <sc-if value="{{ t.hasNote }}" hint-placeholder-val="{{ false }}">
+                            <div style="font: var(--type-hint); color: var(--text-muted); margin-top: 2px">Reason: {{ t.UserNote }}</div>
+                          </sc-if>
+                        </td>
+                        <td class="num" style="font-weight: 500">{{ t.Amount }}</td>
+                        <td><span class="badge badge-neutral">{{ t.TransactionType }}</span></td>
+                        <td><span class="badge" style="background: {{ t.stBg }}; color: var(--text-on-brand)">{{ t.Status }}</span></td>
+                        <td style="text-align: right; white-space: nowrap">
+                          <sc-if value="{{ t.showActions }}" hint-placeholder-val="{{ true }}">
+                            <span style="display: inline-flex; gap: 6px; justify-content: flex-end">
+                              <button type="button" class="btn btn-sm btn-ghost" onClick="{{ t.reject }}">Reject</button>
+                              <button type="button" class="btn btn-sm btn-primary" onClick="{{ t.approve }}">Approve</button>
+                            </span>
+                          </sc-if>
+                          <sc-if value="{{ t.showSettled }}" hint-placeholder-val="{{ false }}">
+                            <span style="font: var(--type-hint); color: var(--text-muted)">{{ t.settledBy }}</span>
+                          </sc-if>
+                        </td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+
+                <div class="pager">
+                  <span>Showing 1–12 of 20 records</span>
+                  <span style="display: inline-flex; align-items: center; gap: 6px">
+                    <button type="button" class="pagerbtn" disabled>‹ Back</button>
+                    <span>Page 1 of 2</span>
+                    <button type="button" class="pagerbtn">Next ›</button>
+                  </span>
+                  <span style="display: inline-flex; align-items: center; gap: 6px">
+                    <label for="ps">Rows</label>
+                    <select id="ps" class="ctl" style="width: auto; padding: 3px 8px; font-size: 12px" defaultValue="20">
+                      <option>5</option><option>10</option><option>20</option><option>50</option>
+                    </select>
+                  </span>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showHistory }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <table class="dt">
+                  <thead>
+                    <tr>
+                      <th>Activity</th><th>Decision</th><th>Started</th><th>Ended</th><th class="num">Duration</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ steps }}" as="s" hint-placeholder-count="6">
+                      <tr style="background: {{ s.bg }}">
+                        <td style="font-weight: 500">{{ s.ActivityName }}</td>
+                        <td><span class="badge" style="background: {{ s.decBg }}; color: {{ s.decFg }}">{{ s.DecisionResult }}</span></td>
+                        <td class="mono" style="color: var(--text-muted)">{{ s.StartDate }}</td>
+                        <td class="mono" style="color: var(--text-muted)">{{ s.EndDate }}</td>
+                        <td class="num">{{ s.duration }}</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+                <div class="pager"><span>Showing 1–6 of 6 records</span><span>All recorded steps, in order</span></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showFailed }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 12px">
+                <div class="alert" style="border-left: 4px solid var(--color-success); max-width: none">
+                  <span style="color: var(--color-success); display: inline-flex; flex: 0 0 auto">
+                    <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm3.5 4.7-4 5.3a.7.7 0 0 1-1 .1L4 8.5l1-1 1.9 2 3.4-4.5 1.2.7z"></path></svg>
+                  </span>
+                  <div style="flex: 1 1 auto; min-width: 0">
+                    <strong style="color: var(--color-success)">All 20 records passed validation. </strong>No failing records were produced for this file, and no bulk error file exists — so its retrieval is not offered.
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <sc-if value="{{ showReject }}" hint-placeholder-val="{{ false }}">
+    <div class="veil">
+      <div class="dlg">
+        <h3>{{ rejectTitle }}</h3>
+        <p style="margin: 0 0 14px; color: var(--text-muted)">{{ rejectBody }}</p>
+
+        <sc-if value="{{ dlgHasAccount }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; margin-bottom: 14px; border-radius: var(--radius-panel); background: var(--overlay-4)">
+            <span>
+              <span class="eyebrow" style="display: block">Account number</span>
+              <span class="mono" style="letter-spacing: 0.04em; color: {{ dlgAcctColour }}">{{ dlgAccount }}</span>
+            </span>
+            <button type="button" class="btn btn-sm btn-ghost" onClick="{{ toggleDlgReveal }}">{{ dlgRevealLabel }}</button>
+          </div>
+        </sc-if>
+
+        <div class="field">
+          <label class="label" for="reason">Reason<span class="req"> *</span></label>
+          <textarea id="reason" class="ctl" style="min-height: 78px; resize: vertical; border-color: {{ reasonBorder }}" placeholder="State why this data is being turned back." value="{{ reason }}" onChange="{{ onReason }}"></textarea>
+          <sc-if value="{{ reasonError }}" hint-placeholder-val="{{ false }}">
+            <span class="err">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm-.9 3.5h1.8L8.7 9.5H7.3l-.2-5zM8 11.2a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg>
+              A reason is required before a rejection can be recorded.
+            </span>
+          </sc-if>
+          <span class="hint">The reason is recorded as the transaction's user note, against your name.</span>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px">
+          <button type="button" class="btn btn-ghost" style="outline: 2px solid var(--focus-ring); outline-offset: 2px" onClick="{{ closeDlg }}">Cancel</button>
+          <button type="button" class="btn btn-destructive" onClick="{{ confirmReject }}">Record rejection</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showApproveAll }}" hint-placeholder-val="{{ false }}">
+    <div class="veil">
+      <div class="dlg">
+        <h3>Approve all {{ awaitingCount }} transactions on Salary run April.csv?</h3>
+        <p style="margin: 0 0 4px; color: var(--text-muted)">Approved transactions are committed to the permanent record. This cannot be undone.</p>
+        <p style="margin: 0; font-size: 12px; color: var(--text-muted)">{{ excludedLine }}</p>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px">
+          <button type="button" class="btn btn-ghost" style="outline: 2px solid var(--focus-ring); outline-offset: 2px" onClick="{{ closeDlg }}">Cancel</button>
+          <button type="button" class="btn btn-primary" onClick="{{ confirmApproveAll }}">Approve all</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; right: 24px; bottom: 24px; z-index: 30; max-width: 440px; box-shadow: var(--shadow-lg); border-radius: var(--radius-panel)">
+      <div class="alert" style="border-left: 4px solid var(--color-success); max-width: none">
+        <span style="color: var(--color-success); display: inline-flex; flex: 0 0 auto">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm3.5 4.7-4 5.3a.7.7 0 0 1-1 .1L4 8.5l1-1 1.9 2 3.4-4.5 1.2.7z"></path></svg>
+        </span>
+        <div style="flex: 1 1 auto; min-width: 0">{{ toast }}</div>
+        <button type="button" aria-label="Dismiss" onClick="{{ clearToast }}" style="flex: 0 0 auto; background: transparent; border: 0; font-size: 16px; line-height: 1; cursor: pointer; color: var(--text-muted); padding: 4px 8px; border-radius: var(--radius-xs)">×</button>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light","section":"Theme"},"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      role: 'Approver',
+      tab: 'tx',
+      sortKey: 'Reference',
+      sortDir: 'asc',
+      revealed: {},
+      revealAll: false,
+      dlgReveal: false,
+      dialog: null,
+      targetId: null,
+      reason: '',
+      reasonError: false,
+      toast: '',
+      decided: {
+        3: { s: 'Approved', by: 'You · 08:31' },
+        7: { s: 'Rejected', by: 'You · 08:33', note: 'Account number not recognised on the vendor master' }
+      }
+    };
+  }
+
+  seed() {
+    return [
+      { id: 1,  Reference: 'SAL-2604-0001', TransactionDate: '24 Aug 2026, 06:00', Account: '6083 0114 4821', Description: 'April salary — payroll batch 1', Amount: '18 450.00', TransactionType: 'Credit' },
+      { id: 2,  Reference: 'SAL-2604-0002', TransactionDate: '24 Aug 2026, 06:00', Account: '6291 8830 7734', Description: 'April salary — payroll batch 1', Amount: '22 100.00', TransactionType: 'Credit' },
+      { id: 3,  Reference: 'SAL-2604-0003', TransactionDate: '24 Aug 2026, 06:00', Account: '6110 4472 1902', Description: 'April salary — payroll batch 1', Amount: '31 875.50', TransactionType: 'Credit' },
+      { id: 4,  Reference: 'SAL-2604-0004', TransactionDate: '24 Aug 2026, 06:01', Account: '6377 2019 6650', Description: 'April salary — payroll batch 2', Amount: '15 200.00', TransactionType: 'Credit' },
+      { id: 5,  Reference: 'SAL-2604-0005', TransactionDate: '24 Aug 2026, 06:01', Account: '6044 9127 3318', Description: 'April salary — payroll batch 2', Amount: '27 640.00', TransactionType: 'Credit' },
+      { id: 6,  Reference: 'SAL-2604-0006', TransactionDate: '24 Aug 2026, 06:01', Account: '6250 3341 8807', Description: 'Salary correction — March underpayment', Amount: '2 415.75', TransactionType: 'Credit' },
+      { id: 7,  Reference: 'SAL-2604-0007', TransactionDate: '24 Aug 2026, 06:02', Account: '6198 7754 2264', Description: 'April salary — payroll batch 2', Amount: '19 980.00', TransactionType: 'Credit' },
+      { id: 8,  Reference: 'SAL-2604-0008', TransactionDate: '24 Aug 2026, 06:02', Account: '6402 1188 5541', Description: 'Garnishee deduction — April', Amount: '3 100.00', TransactionType: 'Debit' },
+      { id: 9,  Reference: 'SAL-2604-0009', TransactionDate: '24 Aug 2026, 06:02', Account: '6019 6640 9073', Description: 'April salary — payroll batch 3', Amount: '24 300.00', TransactionType: 'Credit' },
+      { id: 10, Reference: 'SAL-2604-0010', TransactionDate: '24 Aug 2026, 06:03', Account: '6337 2205 4127', Description: 'April salary — payroll batch 3', Amount: '16 725.00', TransactionType: 'Credit' },
+      { id: 11, Reference: 'SAL-2604-0011', TransactionDate: '24 Aug 2026, 06:03', Account: '6155 9038 7789', Description: 'Pension contribution recovery', Amount: '1 862.40', TransactionType: 'Debit' },
+      { id: 12, Reference: 'SAL-2604-0012', TransactionDate: '24 Aug 2026, 06:03', Account: '6288 4471 3345', Description: 'April salary — payroll batch 3', Amount: '29 010.00', TransactionType: 'Credit' }
+    ];
+  }
+
+  mask(acct) {
+    return '•••••• ' + acct.slice(-4);
+  }
+
+  statusColour(st) {
+    if (st === 'Approved') return 'var(--color-success)';
+    if (st === 'Rejected') return 'var(--color-error)';
+    return 'var(--color-warning)';
+  }
+
+  renderVals() {
+    const s = this.state;
+    const self = this;
+    const rows = this.seed();
+    const canDecide = s.role === 'Approver';
+
+    const statusOf = function (id) { return s.decided[id] ? s.decided[id].s : 'Imported'; };
+    const awaiting = rows.filter(function (t) { return statusOf(t.id) === 'Imported'; }).length;
+    const approved = rows.filter(function (t) { return statusOf(t.id) === 'Approved'; }).length;
+    const rejected = rows.filter(function (t) { return statusOf(t.id) === 'Rejected'; }).length;
+    const settledAlready = approved + rejected;
+
+    const cols = [
+      { key: 'Reference',       label: 'Reference',      align: 'left'  },
+      { key: 'TransactionDate', label: 'Transaction date', align: 'left' },
+      { key: 'Account',         label: 'Account number', align: 'left'  },
+      { key: 'Description',     label: 'Description',    align: 'left'  },
+      { key: 'Amount',          label: 'Amount',         align: 'right' },
+      { key: 'TransactionType', label: 'Type',           align: 'left'  },
+      { key: 'Status',          label: 'Standing',       align: 'left'  },
+      { key: '',                label: 'Decision',       align: 'right', actions: true }
+    ];
+
+    const sorted = rows.slice().sort(function (a, b) {
+      const dir = s.sortDir === 'asc' ? 1 : -1;
+      const k = s.sortKey;
+      const x = k === 'Status' ? statusOf(a.id) : a[k];
+      const y = k === 'Status' ? statusOf(b.id) : b[k];
+      return String(x).localeCompare(String(y)) * dir;
+    });
+
+    const target = rows.filter(function (t) { return t.id === s.targetId; })[0];
+    const dlgRevealed = s.dlgReveal;
+
+    // Who brought the file in — visible to a role accountable for the decision.
+    const meta = [
+      { label: 'File setting',  value: 'Salary Payments', cls: '' },
+      { label: 'Process date',  value: '25 Aug 2026, 08:14 SAST', cls: 'mono' },
+      { label: 'Records',       value: '20', cls: 'mono' },
+      { label: 'Last activity', value: 'Await decision', cls: '' },
+      { label: 'Direction',     value: 'Inbound', cls: '' },
+      { label: 'Log identifier', value: '40812', cls: 'mono' }
+    ];
+    if (canDecide) {
+      meta.splice(2, 0, { label: 'Uploaded by', value: 'Thabo Dlamini · Importer', cls: '' });
+    }
+
+    return {
+      theme: this.props.theme || 'light',
+
+      roleChoices: ['Importer', 'Approver'].map(function (label) {
+        return {
+          label: label,
+          cls: s.role === label ? 'btn-primary' : 'btn-ghost',
+          pick: function () { self.setState({ role: label, dialog: null, revealed: {}, revealAll: false }); }
+        };
+      }),
+      resetDemo: function () {
+        self.setState({ decided: {}, revealed: {}, revealAll: false, dialog: null, reason: '', toast: 'Demo data reset — every transaction is awaiting a decision again.' });
+      },
+
+      userName: canDecide ? 'Naledi Mokoena' : 'Thabo Dlamini',
+      userEmail: canDecide ? 'naledi.mokoena@pimcapitalgroup.com' : 'thabo.dlamini@pimcapitalgroup.com',
+      roleLabel: s.role,
+      roleBadgeBg: canDecide ? 'var(--brand-primary)' : 'var(--color-info)',
+      canUpload: !canDecide,
+      canDecide: canDecide,
+
+      detailMeta: meta,
+
+      tabs: [
+        { key: 'tx',      label: 'Transactions' },
+        { key: 'history', label: 'Processing history' },
+        { key: 'failed',  label: 'Failed records' }
+      ].map(function (t) {
+        return { label: t.label, cls: s.tab === t.key ? 'on' : '', pick: function () { self.setState({ tab: t.key }); } };
+      }),
+      showTx: s.tab === 'tx',
+      showHistory: s.tab === 'history',
+      showFailed: s.tab === 'failed',
+
+      progressLine: approved + ' approved · ' + rejected + ' rejected · ' + awaiting + ' awaiting a decision',
+      awaitingCount: awaiting,
+      excludedLine: settledAlready > 0
+        ? settledAlready + ' transactions are already settled and are excluded from this action.'
+        : 'Every transaction on this file is awaiting a decision.',
+
+      revealAllLabel: s.revealAll ? 'Mask account numbers' : 'Reveal account numbers',
+      slashDisplay: s.revealAll ? 'none' : 'inline',
+      toggleRevealAll: function () {
+        const next = !s.revealAll;
+        self.setState({
+          revealAll: next,
+          revealed: {},
+          toast: next ? 'Account numbers revealed for this review. The reveal is recorded against your name.' : ''
+        });
+      },
+
+      txColumns: cols.map(function (c) {
+        const on = !c.actions && s.sortKey === c.key;
+        return {
+          label: c.label,
+          align: c.align,
+          onCls: on ? 'on' : '',
+          markCls: on ? 'on' : '',
+          mark: c.actions ? '' : (on ? (s.sortDir === 'asc' ? '▲' : '▼') : '⇅'),
+          sort: c.actions ? function () {} : function () {
+            self.setState({ sortKey: c.key, sortDir: (s.sortKey === c.key && s.sortDir === 'asc') ? 'desc' : 'asc' });
+          }
+        };
+      }),
+
+      txns: sorted.map(function (t, i) {
+        const st = statusOf(t.id);
+        const rec = s.decided[t.id];
+        const shown = canDecide && (s.revealAll || !!s.revealed[t.id]);
+        return {
+          Reference: t.Reference,
+          TransactionDate: t.TransactionDate,
+          AccountNumber: shown ? t.Account : self.mask(t.Account),
+          acctColour: shown ? 'var(--color-text)' : 'var(--text-muted)',
+          canReveal: canDecide,
+          slashDisplay: shown ? 'none' : 'inline',
+          revealTitle: shown ? 'Mask this account number' : 'Reveal this account number',
+          toggleReveal: function () {
+            const next = Object.assign({}, s.revealed);
+            next[t.id] = !next[t.id];
+            self.setState({ revealed: next });
+          },
+          Description: t.Description,
+          Amount: 'R ' + t.Amount,
+          TransactionType: t.TransactionType,
+          Status: st,
+          stBg: self.statusColour(st),
+          UserNote: rec && rec.note ? rec.note : '',
+          hasNote: !!(rec && rec.note),
+          bg: i % 2 === 1 ? 'var(--surface-page)' : 'transparent',
+          showActions: canDecide && st === 'Imported',
+          showSettled: st !== 'Imported',
+          settledBy: rec ? rec.by : '',
+          approve: function () {
+            const next = Object.assign({}, s.decided);
+            next[t.id] = { s: 'Approved', by: 'You · 08:41' };
+            self.setState({ decided: next, toast: t.Reference + ' is approved and committed to the permanent record.' });
+          },
+          reject: function () {
+            self.setState({ dialog: 'reject-one', targetId: t.id, reason: '', reasonError: false, dlgReveal: false });
+          }
+        };
+      }),
+
+      steps: [
+        { ActivityName: 'Register',        DecisionResult: '—',   StartDate: '08:14:02', EndDate: '08:14:03', duration: '1 s',  ok: true },
+        { ActivityName: 'Duplicate check', DecisionResult: 'No',  StartDate: '08:14:03', EndDate: '08:14:09', duration: '6 s',  ok: true },
+        { ActivityName: 'Import',          DecisionResult: '—',   StartDate: '08:14:09', EndDate: '08:14:41', duration: '32 s', ok: true },
+        { ActivityName: 'Transform',       DecisionResult: '—',   StartDate: '08:14:41', EndDate: '08:14:58', duration: '17 s', ok: true },
+        { ActivityName: 'Validate',        DecisionResult: 'Yes', StartDate: '08:14:58', EndDate: '08:15:22', duration: '24 s', ok: true },
+        { ActivityName: 'Await decision',  DecisionResult: '—',   StartDate: '08:15:22', EndDate: '—',        duration: 'running', ok: false }
+      ].map(function (st, i) {
+        const yes = st.DecisionResult === 'Yes';
+        return {
+          ActivityName: st.ActivityName,
+          DecisionResult: st.DecisionResult,
+          decBg: st.DecisionResult === '—' ? 'var(--overlay-8)' : (yes ? 'var(--color-success)' : 'var(--overlay-8)'),
+          decFg: st.DecisionResult === '—' || !yes ? 'var(--color-text)' : 'var(--text-on-brand)',
+          StartDate: st.StartDate,
+          EndDate: st.EndDate,
+          duration: st.duration,
+          bg: i % 2 === 1 ? 'var(--surface-page)' : 'transparent'
+        };
+      }),
+
+      showReject: s.dialog === 'reject-one' || s.dialog === 'reject-all',
+      showApproveAll: s.dialog === 'approve-all',
+      rejectTitle: s.dialog === 'reject-all'
+        ? 'Reject all ' + awaiting + ' transactions on Salary run April.csv?'
+        : (target ? 'Reject transaction ' + target.Reference + '?' : 'Reject transaction?'),
+      rejectBody: s.dialog === 'reject-all'
+        ? 'Rejected transactions are turned back and do not reach the permanent record. This cannot be undone.'
+        : (target ? target.Description + ' · R ' + target.Amount : ''),
+
+      dlgHasAccount: s.dialog === 'reject-one' && !!target,
+      dlgAccount: target ? (dlgRevealed ? target.Account : this.mask(target.Account)) : '',
+      dlgAcctColour: dlgRevealed ? 'var(--color-text)' : 'var(--text-muted)',
+      dlgRevealLabel: dlgRevealed ? 'Mask' : 'Reveal',
+      toggleDlgReveal: function () { self.setState({ dlgReveal: !s.dlgReveal }); },
+
+      reason: s.reason,
+      reasonError: s.reasonError,
+      reasonBorder: s.reasonError ? 'var(--color-error)' : 'var(--border-default)',
+      onReason: function (e) { self.setState({ reason: e.target.value, reasonError: false }); },
+
+      askRejectAll: function () { self.setState({ dialog: 'reject-all', targetId: null, reason: '', reasonError: false, dlgReveal: false }); },
+      askApproveAll: function () { self.setState({ dialog: 'approve-all' }); },
+      closeDlg: function () { self.setState({ dialog: null, reason: '', reasonError: false, dlgReveal: false }); },
+
+      confirmReject: function () {
+        if (!s.reason.trim()) { self.setState({ reasonError: true }); return; }
+        const next = Object.assign({}, s.decided);
+        if (s.dialog === 'reject-all') {
+          rows.forEach(function (t) {
+            if (!next[t.id]) next[t.id] = { s: 'Rejected', by: 'You · 08:41', note: s.reason.trim() };
+          });
+          self.setState({ decided: next, dialog: null, reason: '', dlgReveal: false, toast: 'Rejection recorded against ' + awaiting + ' transactions on Salary run April.csv.' });
+        } else {
+          next[s.targetId] = { s: 'Rejected', by: 'You · 08:41', note: s.reason.trim() };
+          self.setState({ decided: next, dialog: null, reason: '', dlgReveal: false, toast: 'Rejection recorded. The reason is held as the transaction note.' });
+        }
+      },
+
+      confirmApproveAll: function () {
+        const next = Object.assign({}, s.decided);
+        rows.forEach(function (t) { if (!next[t.id]) next[t.id] = { s: 'Approved', by: 'You · 08:41' }; });
+        self.setState({ decided: next, dialog: null, toast: awaiting + ' transactions on Salary run April.csv are committed to the permanent record.' });
+      },
+
+      toast: s.toast,
+      clearToast: function () { self.setState({ toast: '' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

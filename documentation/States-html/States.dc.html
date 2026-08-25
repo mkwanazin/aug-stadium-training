@@ -1,0 +1,409 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>/*TOKENS*/
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+    /* Token layer — lifted from the incoming design (PIM Capital Group).
+       Light palette extracted from https://www.pimcapitalgroup.com/za/;
+       dark derived from the same hues. Overlays flip black->white on dark. */
+    :root {
+      --font-heading: Montserrat, 'Helvetica Neue', Arial, sans-serif;
+      --font-body: Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+      --brand-primary: #A22921;
+      --brand-secondary: #98C8E8;
+      --brand-accent: #FFAC66;
+      --color-background: #FFFFFF;
+      --color-surface: #FAF7F6;
+      --color-text: #191614;
+      --color-text-muted: #6B625E;
+      --color-success: #15803D;
+      --color-warning: #CA8A04;
+      --color-error: #DC2626;
+      --color-info: #0369A1;
+
+      --overlay-4: rgba(0,0,0,0.04);
+      --overlay-8: rgba(0,0,0,0.08);
+      --overlay-12: rgba(0,0,0,0.12);
+      --overlay-20: rgba(0,0,0,0.20);
+
+      --text-muted: var(--color-text-muted);
+      --text-on-brand: var(--color-surface);
+      --surface-page: var(--color-background);
+      --surface-card: var(--color-surface);
+      --surface-hover: var(--overlay-4);
+      --surface-active: var(--overlay-8);
+      --border-subtle: var(--overlay-8);
+      --border-default: var(--overlay-20);
+      --focus-ring: var(--brand-primary);
+      --selected-row: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+
+      --text-2xl: 1.5rem;
+      --text-3xl: 2.6719rem;
+      --lh-base: 1.625;
+      --type-h1: 400 var(--text-3xl)/1 var(--font-heading);
+      --type-h2: 400 var(--text-2xl)/1.2 var(--font-heading);
+      --type-h3: 400 1.125rem/1.3 var(--font-heading);
+      --type-control: 600 13px/1.4 var(--font-body);
+      --type-ui: 400 13px/1.5 var(--font-body);
+      --type-label: 600 12px/1.4 var(--font-body);
+      --type-hint: 400 11px/1.4 var(--font-body);
+      --type-eyebrow: 600 11px/1.6 var(--font-body);
+      --tracking-eyebrow: 0.04em;
+      --tracking-badge: 0.02em;
+
+      --space-3: 6px;
+      --space-5: 10px;
+      --gap-inline: 8px;
+      --pad-control: 8px 16px;
+      --pad-cell: 10px 12px;
+      --pad-card: 16px;
+      --control-height: 34px;
+
+      --radius-xs: 3px;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --radius-pill: 999px;
+      --radius-control: var(--radius-sm);
+      --radius-panel: var(--radius-md);
+
+      --shadow-sm: 0 1px 2px 0 rgba(25,22,20,0.06);
+      --shadow-md: 0 0 6px rgba(0,0,0,0.2);
+      --shadow-lg: 0 6px 28px rgba(0,0,0,0.08);
+      --shadow-inset-selected: inset 3px 0 0 var(--brand-primary);
+
+      --easing-standard: cubic-bezier(0.25, 1, 0.33, 1);
+      --transition-base: 200ms var(--easing-standard);
+      --hover-brightness: 0.92;
+      --press-brightness: 0.82;
+      --disabled-opacity: 0.5;
+      --scrim: rgba(25,22,20,0.42);
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --brand-primary: #D25D56;
+      --brand-secondary: #ABCDE3;
+      --brand-accent: #FBA760;
+      --color-background: #1B1818;
+      --color-surface: #302C2C;
+      --color-text: #EEEDED;
+      --color-text-muted: #B1ABAA;
+      --color-success: #61D18B;
+      --color-warning: #F5BD47;
+      --color-error: #EB7070;
+      --color-info: #4CAFE6;
+      --overlay-4: rgba(255,255,255,0.04);
+      --overlay-8: rgba(255,255,255,0.08);
+      --overlay-12: rgba(255,255,255,0.12);
+      --overlay-20: rgba(255,255,255,0.20);
+      --text-on-brand: #302C2C;
+      --shadow-sm: 0 1px 2px 0 rgba(25,22,20,0.12);
+      --shadow-md: 0 0 6px rgba(0,0,0,0.35);
+      --shadow-lg: 0 6px 28px rgba(0,0,0,0.16);
+      --scrim: rgba(12,10,10,0.58);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font-body); }
+    a { color: var(--brand-primary); text-decoration: none; }
+    a:hover { color: var(--color-text); }
+
+    /* ---- App frame ---- */
+    .app { display: flex; flex-direction: column; background: var(--color-background); color: var(--color-text); font: var(--type-ui); }
+    .harness { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 16px; background: var(--color-surface); border-bottom: 1px solid var(--overlay-12); flex-shrink: 0; }
+    .harness-t { font-size: 11px; letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-muted); }
+    .body { flex: 1; display: grid; grid-template-columns: 224px 1fr; min-height: 0; }
+    .side { background: var(--color-surface); border-right: 1px solid var(--overlay-8); padding: 20px 12px; display: flex; flex-direction: column; gap: 24px; }
+    .brandmark { font-family: var(--font-heading); font-weight: 400; font-size: 17px; line-height: 1.2; color: var(--brand-primary); }
+    .brandsub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .nav { display: flex; flex-direction: column; gap: 2px; }
+    .nav-i { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: var(--radius-sm); font: var(--type-ui); font-weight: 500; color: var(--text-muted); background: transparent; cursor: pointer; text-align: left; transition: background var(--transition-base), color var(--transition-base); }
+    .nav-i:hover { background: var(--surface-hover); color: var(--color-text); }
+    .nav-i.on { background: var(--selected-row); color: var(--brand-primary); font-weight: 600; box-shadow: var(--shadow-inset-selected); }
+    .nav-sec { font: var(--type-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-muted); padding: 10px 10px 2px; }
+    .signed { margin-top: auto; padding: 14px 8px 0; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--overlay-8); }
+    .eyebrow { font: var(--type-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-muted); }
+    .pane { display: flex; flex-direction: column; min-width: 0; }
+    .head { padding: 20px 28px 16px; border-bottom: 1px solid var(--overlay-8); flex-shrink: 0; }
+    .crumb { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+    .h1 { font: var(--type-h2); margin: 0; }
+    .main { padding: 20px 28px 28px; display: flex; flex-direction: column; gap: 20px; min-width: 0; overflow: auto; }
+
+    /* ---- Controls ---- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-3); padding: var(--pad-control); border: 1px solid transparent; border-radius: var(--radius-control); font: var(--type-control); cursor: pointer; user-select: none; transition: filter var(--transition-base), background var(--transition-base); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn-primary { background: var(--brand-primary); color: var(--text-on-brand); }
+    .btn-secondary { background: var(--brand-secondary); color: var(--text-on-brand); }
+    .btn-destructive { background: var(--color-error); color: var(--text-on-brand); }
+    .btn-primary:hover, .btn-secondary:hover, .btn-destructive:hover { filter: brightness(var(--hover-brightness)); }
+    .btn-primary:active, .btn-secondary:active, .btn-destructive:active { filter: brightness(var(--press-brightness)); }
+    .btn-ghost { background: transparent; color: var(--color-text); border-color: var(--border-default); }
+    .btn-ghost:hover { background: var(--surface-hover); }
+    .btn-ghost:active { background: var(--surface-active); }
+    .btn:disabled { opacity: var(--disabled-opacity); cursor: not-allowed; }
+    .btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+    .ctl { font-family: var(--font-body); font-size: 13px; padding: 8px 12px; border: 1px solid var(--border-default); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); width: 100%; transition: border-color var(--transition-base), box-shadow var(--transition-base); }
+    .ctl:focus { outline: none; border-color: var(--brand-primary); box-shadow: 0 0 0 3px var(--overlay-4); }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .label { font: var(--type-label); color: var(--color-text); }
+    .req { color: var(--brand-primary); }
+    .hint { font: var(--type-hint); color: var(--text-muted); }
+    .err { font: var(--type-hint); color: var(--color-error); display: flex; align-items: center; gap: 5px; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-pill); font: var(--type-eyebrow); letter-spacing: var(--tracking-badge); }
+    .badge-neutral { background: var(--overlay-8); color: var(--color-text); }
+
+    .alert { display: flex; align-items: center; gap: var(--space-5); padding: 12px 16px; border-radius: var(--radius-panel); background: var(--surface-card); color: var(--color-text); font: var(--type-ui); }
+    .alert strong { font-weight: 600; }
+
+    .card { background: var(--surface-card); border-radius: var(--radius-lg); padding: var(--pad-card); font: var(--type-ui); color: var(--color-text); box-shadow: var(--shadow-sm); }
+
+    /* ---- Meta strip: hairline grid ---- */
+    .metagrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--overlay-8); border: 1px solid var(--overlay-8); border-radius: var(--radius-panel); overflow: hidden; }
+    .metagrid > div { background: var(--color-surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+
+    /* ---- Tabs ---- */
+    .tablist { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--overlay-12); }
+    .tab { padding: 8px 14px; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--text-muted); transition: color var(--transition-base), border-color var(--transition-base); }
+    .tab:hover { color: var(--color-text); }
+    .tab.on { border-bottom-color: var(--brand-primary); color: var(--brand-primary); font-weight: 600; }
+    .tabpanel { padding: var(--pad-card); font: var(--type-ui); color: var(--color-text); background: var(--surface-card); border-radius: 0 0 var(--radius-panel) var(--radius-panel); }
+
+    /* ---- DataTable ---- */
+    .dt { width: 100%; border-collapse: separate; border-spacing: 0; font: var(--type-ui); color: var(--color-text); background: var(--surface-card); border-radius: var(--radius-panel); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .dt thead th { text-align: left; padding: var(--pad-cell); background: var(--surface-page); color: var(--text-muted); font: var(--type-eyebrow); text-transform: uppercase; letter-spacing: var(--tracking-eyebrow); border-bottom: 1px solid var(--border-subtle); cursor: pointer; white-space: nowrap; transition: background var(--transition-base); }
+    .dt thead th:hover { background: var(--surface-hover); color: var(--color-text); }
+    .dt th.on { color: var(--color-text); }
+    .dt td { padding: var(--pad-cell); border-bottom: 1px solid var(--overlay-4); }
+    .dt tbody tr:last-child td { border-bottom: 0; }
+    .dt tbody tr { transition: background var(--transition-base); }
+    .sortmark { font-size: 9px; margin-left: 4px; color: var(--text-muted); opacity: 0.5; }
+    .sortmark.on { color: var(--brand-primary); opacity: 1; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pager { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-5); padding: var(--pad-cell); background: var(--surface-card); border: 1px solid var(--border-subtle); border-top: 0; border-radius: 0 0 var(--radius-panel) var(--radius-panel); font-family: var(--font-body); font-size: 12px; color: var(--text-muted); margin-top: -1px; }
+    .pagerbtn { padding: 3px 8px; border: 1px solid var(--border-default); border-radius: var(--radius-xs); background: transparent; color: var(--color-text); font-family: var(--font-body); font-size: 12px; cursor: pointer; transition: background var(--transition-base); }
+    .pagerbtn:hover { background: var(--surface-hover); }
+    .pagerbtn:disabled { opacity: var(--disabled-opacity); cursor: not-allowed; }
+
+    /* ---- Modal ---- */
+    .veil { position: absolute; inset: 0; background: var(--scrim); display: flex; align-items: center; justify-content: center; z-index: 20; }
+    .dlg { width: 460px; background: var(--surface-card); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-lg); color: var(--color-text); }
+    .dlg h3 { font: var(--type-h3); margin: 0 0 8px; }
+
+    .mono { font-variant-numeric: tabular-nums; }
+    /*END-TOKENS*/
+    .sheet { width: 1440px; min-height: 1900px; background: var(--color-background); color: var(--color-text); font: var(--type-ui); padding: 32px 36px 40px; }
+    .panel { border: 1px solid var(--overlay-8); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-page); }
+    .cap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 14px; background: var(--color-surface); border-bottom: 1px solid var(--overlay-8); }
+    .cap-t { font: var(--type-label); }
+    .cap-c { font: var(--type-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; padding: 2px 8px; border-radius: var(--radius-pill); }
+    .pbody { padding: 22px 20px; min-height: 168px; display: flex; flex-direction: column; justify-content: center; }
+    .empty { text-align: center; padding: 8px 12px; }
+    .empty h4 { font: var(--type-h3); margin: 10px 0 5px; }
+    .empty p { margin: 0 0 14px; font-size: 12px; color: var(--text-muted); }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 500; border: 1px solid var(--border-default); color: var(--text-muted); }
+    .sk { height: 11px; border-radius: var(--radius-xs); background: linear-gradient(90deg, var(--overlay-8) 25%, var(--overlay-12) 37%, var(--overlay-8) 63%); background-size: 400% 100%; animation: sh 1.4s ease-in-out infinite; }
+    @keyframes sh { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+    .note { display: flex; gap: 10px; border-radius: var(--radius-panel); padding: 11px 13px; font-size: 12px; }
+  </style>
+</helmet>
+
+<div class="sheet">
+
+  <header style="margin-bottom: 26px; padding-bottom: 18px; border-bottom: 1px solid var(--overlay-8)">
+    <h1 style="font-family: Montserrat, 'Helvetica Neue', Arial, sans-serif; font-weight: 400; font-size: 28px; margin: 0 0 6px; line-height: 1.2">Edge, empty and error states</h1>
+    <p style="margin: 0; font-size: 13px; color: var(--text-muted); max-width: 92ch">What the user meets when the happy path does not hold. Each panel names the surface and the condition. Copy follows the careful-custodian voice: name the thing that is absent or that failed, say what it means for the permanent record, and offer the one action that ends it.</p>
+  </header>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">File listing</span><span class="cap-c" style="background: color-mix(in srgb, var(--text-muted) 14%, transparent); color: var(--text-muted)">Empty</span></div>
+      <div class="pbody">
+        <div class="empty">
+          <svg width="34" height="34" viewBox="0 0 16 16" fill="none" stroke="var(--overlay-20)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4.5A1.5 1.5 0 0 1 4 3h8a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 12 13H4a1.5 1.5 0 0 1-1.5-1.5z"></path><path d="M5 6.4h6M5 8.8h4"></path></svg>
+          <h4>No files have been uploaded yet</h4>
+          <p>Upload a transaction file to begin.</p>
+          <button type="button" class="btn btn-sm btn-primary">Upload a file</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">File listing</span><span class="cap-c" style="background: color-mix(in srgb, var(--color-warning) 16%, transparent); color: var(--color-warning)">Emptied by a restriction</span></div>
+      <div class="pbody">
+        <div style="display: flex; gap: 7px; margin-bottom: 14px; flex-wrap: wrap">
+          <span class="chip" style="border-color: var(--brand-primary); color: var(--brand-primary); background: color-mix(in srgb, var(--brand-primary) 10%, transparent)">Active files only</span>
+          <span class="chip" style="border-color: var(--brand-primary); color: var(--brand-primary); background: color-mix(in srgb, var(--brand-primary) 10%, transparent)">Faulted</span>
+          <span class="chip" style="border-color: var(--brand-primary); color: var(--brand-primary); background: color-mix(in srgb, var(--brand-primary) 10%, transparent)">Adjustments</span>
+        </div>
+        <div class="empty" style="padding-top: 0">
+          <h4 style="margin-top: 0">No files match the three restrictions in place</h4>
+          <p>The listing is not empty — the restrictions above are hiding everything in it.</p>
+          <button type="button" class="btn btn-sm btn-ghost">Clear all restrictions</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">File listing</span><span class="cap-c" style="background: color-mix(in srgb, var(--color-info) 14%, transparent); color: var(--color-info)">Loading, past 3 s</span></div>
+      <div class="pbody" style="justify-content: flex-start">
+        <div style="display: flex; flex-direction: column; gap: 13px; margin-bottom: 16px">
+          <div style="display: grid; grid-template-columns: 2fr 1.4fr 1.2fr 0.7fr 1fr; gap: 14px"><span class="sk"></span><span class="sk"></span><span class="sk"></span><span class="sk"></span><span class="sk"></span></div>
+          <div style="display: grid; grid-template-columns: 2fr 1.4fr 1.2fr 0.7fr 1fr; gap: 14px"><span class="sk"></span><span class="sk"></span><span class="sk"></span><span class="sk"></span><span class="sk"></span></div>
+          <div style="display: grid; grid-template-columns: 2fr 1.4fr 1.2fr 0.7fr 1fr; gap: 14px"><span class="sk"></span><span class="sk"></span><span class="sk"></span><span class="sk"></span><span class="sk"></span></div>
+        </div>
+        <p style="margin: 0; font-size: 12px; color: var(--text-muted)">Still fetching the file listing. Nothing has gone wrong — this is taking longer than usual.</p>
+        <p style="margin: 6px 0 0; font-size: 11px; color: var(--text-muted)">Nothing is shown below 300 ms; the placeholder appears from 300 ms; this message joins it past 3 s.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">File listing</span><span class="cap-c" style="background: color-mix(in srgb, var(--color-warning) 16%, transparent); color: var(--color-warning)">Partial load</span></div>
+      <div class="pbody" style="justify-content: flex-start">
+        <div class="note" style="background: color-mix(in srgb, var(--color-warning) 9%, transparent); border-left: 3px solid var(--color-warning); margin-bottom: 14px">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--color-warning)" style="flex-shrink: 0"><path d="M7.1 1.7a1 1 0 0 1 1.8 0l6 11A1 1 0 0 1 14 14H2a1 1 0 0 1-.9-1.3l6-11zM7.2 5v4.4h1.6V5H7.2zm.8 5.6a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8z"></path></svg>
+          <span>Showing 6 of the files received — the rest could not be fetched. This is an incomplete listing, not the whole picture.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: var(--text-muted)">
+          <span class="mono">Salary run April.csv · 25 Aug 2026, 08:14</span>
+          <span class="mono">PAYCOL_20260825_01.csv · 25 Aug 2026, 07:52</span>
+          <span class="mono" style="opacity: .5">Vendor payments Aug.csv · 25 Aug 2026, 07:31</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-ghost" style="align-self: flex-start; margin-top: 14px">Request the listing again</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">Transaction listing</span><span class="cap-c" style="background: color-mix(in srgb, var(--text-muted) 14%, transparent); color: var(--text-muted)">Empty</span></div>
+      <div class="pbody">
+        <div class="empty">
+          <h4 style="margin-top: 0">Salary run April.csv carries no transactions</h4>
+          <p>The file was read successfully but held no records. Check the source file, or cancel this one.</p>
+          <span style="display: inline-flex; gap: 8px">
+            <button type="button" class="btn btn-sm btn-ghost">Back to files</button>
+            <button type="button" class="btn btn-sm btn-ghost" style="color: var(--color-error); border-color: rgba(220,38,38,0.4)">Cancel the file</button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">Transaction listing</span><span class="cap-c" style="background: color-mix(in srgb, var(--color-error) 12%, transparent); color: var(--color-error)">Retrieval failed</span></div>
+      <div class="pbody" style="justify-content: flex-start">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px">
+          <span style="font-family: Montserrat, 'Helvetica Neue', Arial, sans-serif; font-size: 17px">Salary run April.csv</span>
+          <span class="badge" style="background: var(--color-warning); color: var(--text-on-brand)">Validated</span>
+        </div>
+        <div class="note" style="background: color-mix(in srgb, var(--color-error) 8%, transparent); border-left: 3px solid var(--color-error)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--color-error)" style="flex-shrink: 0"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm-.9 3.5h1.8L8.7 9.5H7.3l-.2-5zM8 11.2a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg>
+          <span>The transactions on this file could not be retrieved. The file's own standing is unchanged and nothing has been committed.</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-ghost" style="align-self: flex-start; margin-top: 14px">Request the transactions again</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">Any protected surface</span><span class="cap-c" style="background: color-mix(in srgb, var(--text-muted) 14%, transparent); color: var(--text-muted)">Permission denied</span></div>
+      <div class="pbody">
+        <div class="empty">
+          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="var(--overlay-20)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="7" width="9.6" height="6.4" rx="1.2"></rect><path d="M5.6 7V5.2a2.4 2.4 0 0 1 4.8 0V7"></path></svg>
+          <h4>You do not hold the Approver role</h4>
+          <p>Deciding on a whole file needs the Approver role. Your account holds Importer only, so this surface stays closed to you.</p>
+          <button type="button" class="btn btn-sm btn-primary">Request the Approver role</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">Settled transaction</span><span class="cap-c" style="background: color-mix(in srgb, var(--color-success) 14%, transparent); color: var(--color-success)">No longer changeable</span></div>
+      <div class="pbody" style="justify-content: flex-start">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px">
+          <span class="mono" style="font-weight: 600">SAL-2604-0003</span>
+          <span class="badge" style="background: var(--color-success); color: var(--text-on-brand)">Approved</span>
+          <span class="mono" style="font-size: 11px; color: var(--text-muted)">Naledi Mokoena · 25 Aug 2026, 08:31 SAST</span>
+        </div>
+        <div class="note" style="background: var(--overlay-4); border-left: 3px solid var(--text-muted)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--text-muted)" style="flex-shrink: 0"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm-.9 3h1.8v1.6H7.1V4zm0 3h1.8v5H7.1V7z"></path></svg>
+          <span>This transaction is settled and committed to the permanent record. Decision actions are no longer offered on it, and nothing here restores them — a correction is made by importing an adjusting record.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">Failing-record listing</span><span class="cap-c" style="background: color-mix(in srgb, var(--text-muted) 14%, transparent); color: var(--text-muted)">Faulted with no records</span></div>
+      <div class="pbody" style="justify-content: flex-start">
+        <p style="margin: 0 0 12px; font-size: 13px; font-weight: 600">No failing records were produced for this run.</p>
+        <div class="note" style="background: color-mix(in srgb, var(--color-error) 8%, transparent); border-left: 3px solid var(--color-error)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--color-error)" style="flex-shrink: 0"><path d="M7.1 1.7a1 1 0 0 1 1.8 0l6 11A1 1 0 0 1 14 14H2a1 1 0 0 1-.9-1.3l6-11zM7.2 5v4.4h1.6V5H7.2zm.8 5.6a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8z"></path></svg>
+          <span>The run faulted at the Import step before any record was staged. Recorded fault: <span class="mono">the file could not be opened at /staging/collections/in</span>.</span>
+        </div>
+        <p style="margin: 12px 0 0; font-size: 11px; color: var(--text-muted)">No bulk error file was produced either, so its retrieval action is absent rather than offered and failing.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">Review surface</span><span class="cap-c" style="background: color-mix(in srgb, var(--color-warning) 16%, transparent); color: var(--color-warning)">Offline</span></div>
+      <div class="pbody" style="justify-content: flex-start">
+        <div class="note" style="background: color-mix(in srgb, var(--color-warning) 9%, transparent); border-left: 3px solid var(--color-warning); margin-bottom: 14px">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--color-warning)" stroke-width="1.4" stroke-linecap="round" style="flex-shrink: 0"><path d="M1.8 5.6a9 9 0 0 1 12.4 0"></path><path d="M4.2 8.2a5.6 5.6 0 0 1 7.6 0"></path><path d="M6.6 10.8a2.2 2.2 0 0 1 2.8 0"></path><path d="m2.4 13.4 11-11"></path></svg>
+          <span>You are offline. The transactions already fetched stay readable, but no decision can be recorded until the connection is back.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; opacity: .55">
+          <span class="mono" style="font-size: 12px">SAL-2604-0009 · R 24 300.00</span>
+          <span class="badge" style="background: var(--color-warning); color: var(--text-on-brand)">Imported</span>
+          <span style="font-size: 11px; color: var(--text-muted)">Approve and Reject are absent while this persists</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">Export approved data</span><span class="cap-c" style="background: color-mix(in srgb, var(--text-muted) 14%, transparent); color: var(--text-muted)">Empty scope</span></div>
+      <div class="pbody">
+        <div class="empty">
+          <h4 style="margin-top: 0">Nothing approved in Salary Payments this week</h4>
+          <p>No export was produced. Widen the period, or settle more transactions first.</p>
+          <span style="display: inline-flex; gap: 8px">
+            <button type="button" class="btn btn-sm btn-ghost">Widen to this month</button>
+            <button type="button" class="btn btn-sm btn-ghost">Go to files awaiting a decision</button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cap"><span class="cap-t">Import activity report</span><span class="cap-c" style="background: color-mix(in srgb, var(--text-muted) 14%, transparent); color: var(--text-muted)">Empty</span></div>
+      <div class="pbody">
+        <div class="empty">
+          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="var(--overlay-20)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13V8.4M8 13V3.6M13 13V6.8"></path></svg>
+          <h4>No files exist in any standing</h4>
+          <p>There is nothing to count yet. Upload a transaction file to begin.</p>
+          <button type="button" class="btn btn-sm btn-primary">Upload a file</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="margin: 26px 0 0; padding-top: 18px; border-top: 1px solid var(--overlay-8); font-size: 11px; color: var(--text-muted)">A completed action confirms itself transiently and clears after four to eight seconds. A state the user must acknowledge — a lost connection, a missing permission — persists until it is dismissed or resolved.</p>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {}
+</script>
+</body>
+</html>

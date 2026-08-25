@@ -1,0 +1,478 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>/*TOKENS*/
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+    /* Token layer — lifted from the incoming design (PIM Capital Group).
+       Light palette extracted from https://www.pimcapitalgroup.com/za/;
+       dark derived from the same hues. Overlays flip black->white on dark. */
+    :root {
+      --font-heading: Montserrat, 'Helvetica Neue', Arial, sans-serif;
+      --font-body: Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+      --brand-primary: #A22921;
+      --brand-secondary: #98C8E8;
+      --brand-accent: #FFAC66;
+      --color-background: #FFFFFF;
+      --color-surface: #FAF7F6;
+      --color-text: #191614;
+      --color-text-muted: #6B625E;
+      --color-success: #15803D;
+      --color-warning: #CA8A04;
+      --color-error: #DC2626;
+      --color-info: #0369A1;
+
+      --overlay-4: rgba(0,0,0,0.04);
+      --overlay-8: rgba(0,0,0,0.08);
+      --overlay-12: rgba(0,0,0,0.12);
+      --overlay-20: rgba(0,0,0,0.20);
+
+      --text-muted: var(--color-text-muted);
+      --text-on-brand: var(--color-surface);
+      --surface-page: var(--color-background);
+      --surface-card: var(--color-surface);
+      --surface-hover: var(--overlay-4);
+      --surface-active: var(--overlay-8);
+      --border-subtle: var(--overlay-8);
+      --border-default: var(--overlay-20);
+      --focus-ring: var(--brand-primary);
+      --selected-row: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+
+      --text-2xl: 1.5rem;
+      --text-3xl: 2.6719rem;
+      --lh-base: 1.625;
+      --type-h1: 400 var(--text-3xl)/1 var(--font-heading);
+      --type-h2: 400 var(--text-2xl)/1.2 var(--font-heading);
+      --type-h3: 400 1.125rem/1.3 var(--font-heading);
+      --type-control: 600 13px/1.4 var(--font-body);
+      --type-ui: 400 13px/1.5 var(--font-body);
+      --type-label: 600 12px/1.4 var(--font-body);
+      --type-hint: 400 11px/1.4 var(--font-body);
+      --type-eyebrow: 600 11px/1.6 var(--font-body);
+      --tracking-eyebrow: 0.04em;
+      --tracking-badge: 0.02em;
+
+      --space-3: 6px;
+      --space-5: 10px;
+      --gap-inline: 8px;
+      --pad-control: 8px 16px;
+      --pad-cell: 10px 12px;
+      --pad-card: 16px;
+      --control-height: 34px;
+
+      --radius-xs: 3px;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --radius-pill: 999px;
+      --radius-control: var(--radius-sm);
+      --radius-panel: var(--radius-md);
+
+      --shadow-sm: 0 1px 2px 0 rgba(25,22,20,0.06);
+      --shadow-md: 0 0 6px rgba(0,0,0,0.2);
+      --shadow-lg: 0 6px 28px rgba(0,0,0,0.08);
+      --shadow-inset-selected: inset 3px 0 0 var(--brand-primary);
+
+      --easing-standard: cubic-bezier(0.25, 1, 0.33, 1);
+      --transition-base: 200ms var(--easing-standard);
+      --hover-brightness: 0.92;
+      --press-brightness: 0.82;
+      --disabled-opacity: 0.5;
+      --scrim: rgba(25,22,20,0.42);
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --brand-primary: #D25D56;
+      --brand-secondary: #ABCDE3;
+      --brand-accent: #FBA760;
+      --color-background: #1B1818;
+      --color-surface: #302C2C;
+      --color-text: #EEEDED;
+      --color-text-muted: #B1ABAA;
+      --color-success: #61D18B;
+      --color-warning: #F5BD47;
+      --color-error: #EB7070;
+      --color-info: #4CAFE6;
+      --overlay-4: rgba(255,255,255,0.04);
+      --overlay-8: rgba(255,255,255,0.08);
+      --overlay-12: rgba(255,255,255,0.12);
+      --overlay-20: rgba(255,255,255,0.20);
+      --text-on-brand: #302C2C;
+      --shadow-sm: 0 1px 2px 0 rgba(25,22,20,0.12);
+      --shadow-md: 0 0 6px rgba(0,0,0,0.35);
+      --shadow-lg: 0 6px 28px rgba(0,0,0,0.16);
+      --scrim: rgba(12,10,10,0.58);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font-body); }
+    a { color: var(--brand-primary); text-decoration: none; }
+    a:hover { color: var(--color-text); }
+
+    /* ---- App frame ---- */
+    .app { display: flex; flex-direction: column; background: var(--color-background); color: var(--color-text); font: var(--type-ui); }
+    .harness { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 16px; background: var(--color-surface); border-bottom: 1px solid var(--overlay-12); flex-shrink: 0; }
+    .harness-t { font-size: 11px; letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-muted); }
+    .body { flex: 1; display: grid; grid-template-columns: 224px 1fr; min-height: 0; }
+    .side { background: var(--color-surface); border-right: 1px solid var(--overlay-8); padding: 20px 12px; display: flex; flex-direction: column; gap: 24px; }
+    .brandmark { font-family: var(--font-heading); font-weight: 400; font-size: 17px; line-height: 1.2; color: var(--brand-primary); }
+    .brandsub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .nav { display: flex; flex-direction: column; gap: 2px; }
+    .nav-i { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: var(--radius-sm); font: var(--type-ui); font-weight: 500; color: var(--text-muted); background: transparent; cursor: pointer; text-align: left; transition: background var(--transition-base), color var(--transition-base); }
+    .nav-i:hover { background: var(--surface-hover); color: var(--color-text); }
+    .nav-i.on { background: var(--selected-row); color: var(--brand-primary); font-weight: 600; box-shadow: var(--shadow-inset-selected); }
+    .nav-sec { font: var(--type-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-muted); padding: 10px 10px 2px; }
+    .signed { margin-top: auto; padding: 14px 8px 0; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--overlay-8); }
+    .eyebrow { font: var(--type-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-muted); }
+    .pane { display: flex; flex-direction: column; min-width: 0; }
+    .head { padding: 20px 28px 16px; border-bottom: 1px solid var(--overlay-8); flex-shrink: 0; }
+    .crumb { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+    .h1 { font: var(--type-h2); margin: 0; }
+    .main { padding: 20px 28px 28px; display: flex; flex-direction: column; gap: 20px; min-width: 0; overflow: auto; }
+
+    /* ---- Controls ---- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-3); padding: var(--pad-control); border: 1px solid transparent; border-radius: var(--radius-control); font: var(--type-control); cursor: pointer; user-select: none; transition: filter var(--transition-base), background var(--transition-base); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn-primary { background: var(--brand-primary); color: var(--text-on-brand); }
+    .btn-secondary { background: var(--brand-secondary); color: var(--text-on-brand); }
+    .btn-destructive { background: var(--color-error); color: var(--text-on-brand); }
+    .btn-primary:hover, .btn-secondary:hover, .btn-destructive:hover { filter: brightness(var(--hover-brightness)); }
+    .btn-primary:active, .btn-secondary:active, .btn-destructive:active { filter: brightness(var(--press-brightness)); }
+    .btn-ghost { background: transparent; color: var(--color-text); border-color: var(--border-default); }
+    .btn-ghost:hover { background: var(--surface-hover); }
+    .btn-ghost:active { background: var(--surface-active); }
+    .btn:disabled { opacity: var(--disabled-opacity); cursor: not-allowed; }
+    .btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+    .ctl { font-family: var(--font-body); font-size: 13px; padding: 8px 12px; border: 1px solid var(--border-default); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); width: 100%; transition: border-color var(--transition-base), box-shadow var(--transition-base); }
+    .ctl:focus { outline: none; border-color: var(--brand-primary); box-shadow: 0 0 0 3px var(--overlay-4); }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .label { font: var(--type-label); color: var(--color-text); }
+    .req { color: var(--brand-primary); }
+    .hint { font: var(--type-hint); color: var(--text-muted); }
+    .err { font: var(--type-hint); color: var(--color-error); display: flex; align-items: center; gap: 5px; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-pill); font: var(--type-eyebrow); letter-spacing: var(--tracking-badge); }
+    .badge-neutral { background: var(--overlay-8); color: var(--color-text); }
+
+    .alert { display: flex; align-items: center; gap: var(--space-5); padding: 12px 16px; border-radius: var(--radius-panel); background: var(--surface-card); color: var(--color-text); font: var(--type-ui); }
+    .alert strong { font-weight: 600; }
+
+    .card { background: var(--surface-card); border-radius: var(--radius-lg); padding: var(--pad-card); font: var(--type-ui); color: var(--color-text); box-shadow: var(--shadow-sm); }
+
+    /* ---- Meta strip: hairline grid ---- */
+    .metagrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--overlay-8); border: 1px solid var(--overlay-8); border-radius: var(--radius-panel); overflow: hidden; }
+    .metagrid > div { background: var(--color-surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+
+    /* ---- Tabs ---- */
+    .tablist { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--overlay-12); }
+    .tab { padding: 8px 14px; background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--text-muted); transition: color var(--transition-base), border-color var(--transition-base); }
+    .tab:hover { color: var(--color-text); }
+    .tab.on { border-bottom-color: var(--brand-primary); color: var(--brand-primary); font-weight: 600; }
+    .tabpanel { padding: var(--pad-card); font: var(--type-ui); color: var(--color-text); background: var(--surface-card); border-radius: 0 0 var(--radius-panel) var(--radius-panel); }
+
+    /* ---- DataTable ---- */
+    .dt { width: 100%; border-collapse: separate; border-spacing: 0; font: var(--type-ui); color: var(--color-text); background: var(--surface-card); border-radius: var(--radius-panel); overflow: hidden; box-shadow: var(--shadow-sm); }
+    .dt thead th { text-align: left; padding: var(--pad-cell); background: var(--surface-page); color: var(--text-muted); font: var(--type-eyebrow); text-transform: uppercase; letter-spacing: var(--tracking-eyebrow); border-bottom: 1px solid var(--border-subtle); cursor: pointer; white-space: nowrap; transition: background var(--transition-base); }
+    .dt thead th:hover { background: var(--surface-hover); color: var(--color-text); }
+    .dt th.on { color: var(--color-text); }
+    .dt td { padding: var(--pad-cell); border-bottom: 1px solid var(--overlay-4); }
+    .dt tbody tr:last-child td { border-bottom: 0; }
+    .dt tbody tr { transition: background var(--transition-base); }
+    .sortmark { font-size: 9px; margin-left: 4px; color: var(--text-muted); opacity: 0.5; }
+    .sortmark.on { color: var(--brand-primary); opacity: 1; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pager { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-5); padding: var(--pad-cell); background: var(--surface-card); border: 1px solid var(--border-subtle); border-top: 0; border-radius: 0 0 var(--radius-panel) var(--radius-panel); font-family: var(--font-body); font-size: 12px; color: var(--text-muted); margin-top: -1px; }
+    .pagerbtn { padding: 3px 8px; border: 1px solid var(--border-default); border-radius: var(--radius-xs); background: transparent; color: var(--color-text); font-family: var(--font-body); font-size: 12px; cursor: pointer; transition: background var(--transition-base); }
+    .pagerbtn:hover { background: var(--surface-hover); }
+    .pagerbtn:disabled { opacity: var(--disabled-opacity); cursor: not-allowed; }
+
+    /* ---- Modal ---- */
+    .veil { position: absolute; inset: 0; background: var(--scrim); display: flex; align-items: center; justify-content: center; z-index: 20; }
+    .dlg { width: 460px; background: var(--surface-card); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-lg); color: var(--color-text); }
+    .dlg h3 { font: var(--type-h3); margin: 0 0 8px; }
+
+    .mono { font-variant-numeric: tabular-nums; }
+    /*END-TOKENS*/
+    .tile { background: var(--surface-card); border-radius: var(--radius-lg); padding: 20px 22px; box-shadow: var(--shadow-sm); }
+    .tile-k { display: flex; align-items: center; gap: 8px; font: var(--type-label); color: var(--text-muted); margin-bottom: 10px; }
+    .tile-n { font-family: var(--font-heading); font-weight: 400; font-size: 42px; line-height: 1; color: var(--color-text); font-variant-numeric: tabular-nums; }
+    .tile-s { font-size: 12px; color: var(--text-muted); margin: 8px 0 0; }
+    .dot { width: 9px; height: 9px; border-radius: var(--radius-pill); flex-shrink: 0; }
+    .dt tfoot td { padding: var(--pad-cell); font-weight: 600; border-top: 1px solid var(--border-subtle); background: var(--surface-page); }
+    .chip { display: inline-flex; align-items: center; padding: 5px 11px; border: 1px solid var(--border-default); border-radius: var(--radius-pill); font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; background: transparent; transition: background var(--transition-base), color var(--transition-base); }
+    .chip:hover { background: var(--surface-hover); }
+    .chip.on { background: var(--selected-row); border-color: var(--brand-primary); color: var(--brand-primary); font-weight: 600; }
+  </style>
+</helmet>
+
+<div class="app" style="position: relative; width: 1440px; height: 900px">
+
+  <div class="harness">
+    <span class="harness-t">Prototype harness — fixture data, no server</span>
+    <span style="display: flex; align-items: center; gap: 8px">
+      <span class="harness-t">Viewing as</span>
+      <button type="button" class="btn btn-sm btn-ghost">Importer</button>
+      <button type="button" class="btn btn-sm btn-primary">Approver</button>
+      <button type="button" class="btn btn-sm btn-ghost">Reset demo data</button>
+    </span>
+  </div>
+
+  <div class="body">
+
+    <nav class="side">
+      <div style="padding: 0 8px">
+        <div class="brandmark">PIM Capital Group</div>
+        <div class="brandsub">Transaction file importer</div>
+      </div>
+
+      <div class="nav">
+        <button type="button" class="nav-i">Received files</button>
+        <button type="button" class="nav-i">Upload a file</button>
+        <button type="button" class="nav-i on">Import activity</button>
+        <div class="nav-sec">Administration</div>
+        <button type="button" class="nav-i">File settings</button>
+        <button type="button" class="nav-i">Users and roles</button>
+      </div>
+
+      <div class="signed">
+        <div class="eyebrow">Signed in</div>
+        <div style="line-height: 1.4">Naledi Mokoena</div>
+        <div style="font-size: 12px; color: var(--text-muted)">naledi.mokoena@pimcapitalgroup.com</div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px">
+          <span class="badge" style="background: var(--brand-primary); color: var(--text-on-brand)">Approver</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-ghost" style="margin-top: 8px; align-self: flex-start">Sign out</button>
+      </div>
+    </nav>
+
+    <div class="pane">
+      <header class="head">
+        <div class="crumb">Reporting</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+          <h1 class="h1">Import activity</h1>
+          
+        </div>
+      </header>
+
+      <main class="main">
+
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 18px">
+        <p style="margin: 0; font-size: 13px; color: var(--text-muted); max-width: 66ch">Where the work stands over the chosen period. Counts only — open a file from the Files listing to look at what is behind them.</p>
+        <button type="button" class="btn btn-ghost" onClick="{{ exportSummary }}">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v7.4"></path><path d="M5.2 7.6 8 10.4l2.8-2.8"></path><path d="M3 11.4v1.2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1.2"></path></svg>
+          Export these counts
+        </button>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap">
+        <sc-for list="{{ periods }}" as="p" hint-placeholder-count="4">
+          <span class="chip {{ p.cls }}" onClick="{{ p.pick }}">{{ p.label }}</span>
+        </sc-for>
+        <span style="width: 1px; height: 22px; background: var(--overlay-12); margin: 0 4px"></span>
+        <label for="fs" style="font-size: 12px; color: var(--text-muted)">File setting</label>
+        <select id="fs" class="ctl" style="padding: 5px 10px; font-size: 12px" value="{{ setting }}" onChange="{{ onSetting }}">
+          <option value="All">All settings</option>
+          <option value="Salary Payments">Salary Payments</option>
+          <option value="Collections Batch">Collections Batch</option>
+          <option value="Vendor Payments">Vendor Payments</option>
+          <option value="Debit Orders">Debit Orders</option>
+          <option value="Adjustments">Adjustments</option>
+        </select>
+        <span style="flex-grow: 1"></span>
+        <span class="mono" style="font-size: 12px; color: var(--text-muted)">{{ periodLine }}</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px">
+        <div class="tile">
+          <div class="tile-k"><span class="dot" style="background: var(--color-info)"></span>Files imported</div>
+          <div class="tile-n">{{ imported }}</div>
+          <p class="tile-s">Registered, read and staged over the period.</p>
+        </div>
+        <div class="tile">
+          <div class="tile-k"><span class="dot" style="background: var(--color-success)"></span>Files approved</div>
+          <div class="tile-n">{{ approved }}</div>
+          <p class="tile-s">Every transaction settled as kept and committed.</p>
+        </div>
+        <div class="tile">
+          <div class="tile-k"><span class="dot" style="background: var(--color-error)"></span>Files rejected</div>
+          <div class="tile-n">{{ rejected }}</div>
+          <p class="tile-s">Turned back with a recorded reason against each.</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start">
+
+        <div>
+          <h3 style="font-family: Montserrat, 'Helvetica Neue', Arial, sans-serif; font-weight: 400; font-size: 16px; margin: 0 0 10px">By file setting</h3>
+          <table class="dt">
+            <thead>
+              <tr>
+                <th>File setting</th>
+                <th style="text-align: right; width: 120px">Imported</th>
+                <th style="text-align: right; width: 120px">Approved</th>
+                <th style="text-align: right; width: 120px">Rejected</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ breakdown }}" as="b" hint-placeholder-count="5">
+                <tr style="background: {{ b.bg }}">
+                  <td style="font-weight: 500">{{ b.name }}</td>
+                  <td class="mono" style="text-align: right">{{ b.imported }}</td>
+                  <td class="mono" style="text-align: right">{{ b.approved }}</td>
+                  <td class="mono" style="text-align: right">{{ b.rejected }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td>Total</td>
+                <td class="mono" style="text-align: right">{{ imported }}</td>
+                <td class="mono" style="text-align: right">{{ approved }}</td>
+                <td class="mono" style="text-align: right">{{ rejected }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <aside style="background: var(--color-surface); border-radius: 8px; padding: 18px 20px; box-shadow: 0 1px 2px 0 rgba(25,22,20,0.06)">
+          <h3 style="font-family: Montserrat, 'Helvetica Neue', Arial, sans-serif; font-weight: 400; font-size: 16px; margin: 0 0 6px">Hand approved data to finance</h3>
+          <p style="margin: 0 0 14px; font-size: 12px; color: var(--text-muted)">Produces a delimited file of approved transactions only — reference, transaction date, account number, description, amount, type and currency.</p>
+
+          <label for="scope" style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px">Scope</label>
+          <select id="scope" class="ctl" style="width: 100%; margin-bottom: 12px">
+            <option>Everything approved in this period</option>
+            <option>Approved on a single file…</option>
+            <option>Approved and not yet exported</option>
+          </select>
+
+          <button type="button" class="btn btn-primary" style="width: 100%; justify-content: center" onClick="{{ exportApproved }}">Export approved transactions</button>
+          <p style="margin: 12px 0 0; font-size: 11px; color: var(--text-muted)">{{ approvedTxnLine }}</p>
+        </aside>
+
+      </div>
+    </main>
+    </div>
+  </div>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; right: 24px; bottom: 24px; display: flex; align-items: center; gap: 10px; background: var(--color-surface); border-left: 3px solid var(--color-success); border-radius: 4px; padding: 12px 16px; box-shadow: 0 6px 28px rgba(0,0,0,0.18); max-width: 430px">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--color-success)" style="flex-shrink: 0"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm3.5 4.7-4 5.3a.7.7 0 0 1-1 .1L4 8.5l1-1 1.9 2 3.4-4.5 1.2.7z"></path></svg>
+      <span style="font-size: 13px">{{ toast }}</span>
+      <span style="margin-left: 6px; color: var(--text-muted); cursor: pointer; font-size: 15px; line-height: 1" onClick="{{ clearToast }}">×</span>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { period: 'This month', setting: 'All', toast: '' };
+  }
+
+  data() {
+    return {
+      'Today':      { line: '25 Aug 2026, 00:00 – 23:59 SAST', rows: [
+        { name: 'Salary Payments',   imported: 1, approved: 0, rejected: 0 },
+        { name: 'Collections Batch', imported: 1, approved: 0, rejected: 0 },
+        { name: 'Vendor Payments',   imported: 1, approved: 0, rejected: 0 },
+        { name: 'Debit Orders',      imported: 0, approved: 0, rejected: 0 },
+        { name: 'Adjustments',       imported: 0, approved: 0, rejected: 0 }
+      ] },
+      'This week':  { line: '24 – 25 Aug 2026 SAST', rows: [
+        { name: 'Salary Payments',   imported: 2, approved: 1, rejected: 0 },
+        { name: 'Collections Batch', imported: 2, approved: 0, rejected: 1 },
+        { name: 'Vendor Payments',   imported: 1, approved: 0, rejected: 0 },
+        { name: 'Debit Orders',      imported: 1, approved: 1, rejected: 0 },
+        { name: 'Adjustments',       imported: 0, approved: 0, rejected: 0 }
+      ] },
+      'This month': { line: '1 – 25 Aug 2026 SAST', rows: [
+        { name: 'Salary Payments',   imported: 21, approved: 19, rejected: 2 },
+        { name: 'Collections Batch', imported: 24, approved: 20, rejected: 3 },
+        { name: 'Vendor Payments',   imported: 18, approved: 17, rejected: 1 },
+        { name: 'Debit Orders',      imported: 22, approved: 21, rejected: 1 },
+        { name: 'Adjustments',       imported: 7,  approved: 6,  rejected: 1 }
+      ] },
+      'Last 90 days': { line: '28 May – 25 Aug 2026 SAST', rows: [
+        { name: 'Salary Payments',   imported: 63,  approved: 59, rejected: 4  },
+        { name: 'Collections Batch', imported: 71,  approved: 62, rejected: 8  },
+        { name: 'Vendor Payments',   imported: 55,  approved: 52, rejected: 3  },
+        { name: 'Debit Orders',      imported: 66,  approved: 63, rejected: 3  },
+        { name: 'Adjustments',       imported: 20,  approved: 18, rejected: 2  }
+      ] }
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const self = this;
+    const set = this.data()[s.period];
+    const rows = s.setting === 'All'
+      ? set.rows
+      : set.rows.filter(function (r) { return r.name === s.setting; });
+
+    const sum = function (k) {
+      return rows.reduce(function (a, r) { return a + r[k]; }, 0);
+    };
+    const approved = sum('approved');
+
+    return {
+      periods: ['Today', 'This week', 'This month', 'Last 90 days'].map(function (label) {
+        return {
+          label: label,
+          cls: s.period === label ? 'on' : '',
+          pick: function () { self.setState({ period: label, toast: '' }); }
+        };
+      }),
+
+      setting: s.setting,
+      onSetting: function (e) { self.setState({ setting: e.target.value, toast: '' }); },
+      periodLine: set.line,
+
+      imported: String(sum('imported')),
+      approved: String(approved),
+      rejected: String(sum('rejected')),
+
+      breakdown: rows.map(function (r, i) {
+        return {
+          name: r.name,
+          imported: String(r.imported),
+          approved: String(r.approved),
+          rejected: String(r.rejected),
+          bg: i % 2 === 1 ? 'var(--surface-page)' : 'transparent'
+        };
+      }),
+
+      approvedTxnLine: approved === 0
+        ? 'No approved files in this scope — widen the period, or settle more transactions.'
+        : approved + ' approved files are in scope for this export.',
+
+      toast: s.toast,
+      clearToast: function () { self.setState({ toast: '' }); },
+      exportSummary: function () { self.setState({ toast: 'Import activity for ' + set.line + ' has been produced. Your download is ready.' }); },
+      exportApproved: function () {
+        self.setState({
+          toast: approved === 0
+            ? 'No approved transactions in this scope, so no export was produced.'
+            : 'Approved transactions across ' + approved + ' files have been exported for the finance team.'
+        });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
