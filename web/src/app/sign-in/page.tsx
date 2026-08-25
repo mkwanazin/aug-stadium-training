@@ -20,7 +20,7 @@ export const metadata: Metadata = {
  */
 export default function SignInPage() {
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(280px,1fr)_1.2fr]">
+    <main className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(280px,1fr)_1.2fr]">
       <BrandPanel />
 
       <div className="flex items-center justify-center px-6 py-12">
@@ -31,7 +31,7 @@ export default function SignInPage() {
           <SignInForm />
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

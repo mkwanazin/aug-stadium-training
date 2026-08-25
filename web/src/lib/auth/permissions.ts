@@ -1,0 +1,93 @@
+/**
+ * Role permissions — the one place that answers "may this account do that?".
+ *
+ * The check is deliberately a PERMISSION TEST against the roles an account
+ * actually holds, never a two-way `isApprover ? … : …` branch:
+ *
+ *  - an account may hold BOTH roles, and must then get the union of what each
+ *    permits — a branch can only ever produce one side;
+ *  - an account may hold a role this project grants nothing to (the auth API's
+ *    own `RoleRead` example is `Viewer`), and must then be granted nothing — a
+ *    branch would fall through to the Importer side and hand it the lot.
+ *
+ * Both cases are real: the role set is not closed at two (brief §Notes & Caveats,
+ * "Role set may exceed two"). Every later epic gates on this module rather than
+ * re-deriving the rule.
+ *
+ * Source of the grants below: `documentation/requirements-application.md` §6.5,
+ * carried into the epic brief as BR5 (Importer) and BR6 (Approver).
+ */
+
+import type { UserInfoRead } from '@/types/auth';
+
+/** Role names the project currently defines (project.md §Roles & Permissions). */
+export const ROLE_IMPORTER = 'Importer';
+export const ROLE_APPROVER = 'Approver';
+
+/**
+ * A distinct thing a role may do. Extend this union — and the grant table below
+ * — as later epics introduce actions; never add a second copy of the check.
+ */
+export type Permission =
+  | 'files.view'
+  | 'files.upload'
+  | 'imports.report'
+  | 'fileSettings.administer';
+
+/**
+ * Which roles hold which permission. An account holding ANY of the listed roles
+ * has the permission; an account holding none of them does not.
+ *
+ * Deliberately absent: user and role administration. It is de-scoped from the
+ * whole build (brief §Out of Scope / BR6), so there is no permission to grant and
+ * no "Users and roles" destination for any role.
+ */
+const GRANTS: Record<Permission, readonly string[]> = {
+  'files.view': [ROLE_IMPORTER, ROLE_APPROVER],
+  'files.upload': [ROLE_IMPORTER],
+  'imports.report': [ROLE_IMPORTER, ROLE_APPROVER],
+  'fileSettings.administer': [ROLE_APPROVER],
+};
+
+/** Role names compare case-insensitively; everything else about them is verbatim. */
+const normalise = (roleName: string): string => roleName.trim().toLowerCase();
+
+/**
+ * The role names an account holds, exactly as the API spelt them — they are shown
+ * to the person, so they are never re-cased or re-worded here.
+ *
+ * `Roles[]` is authoritative. `RolesString` is only consulted when `Roles` is
+ * absent, because the spec never states how it joins several roles (it only ever
+ * shows a single-role example), so splitting it is a guess of last resort.
+ */
+export function roleNamesOf(userInfo: UserInfoRead): string[] {
+  const fromRoles = (userInfo.Roles ?? [])
+    .map((role) => role.Name?.trim())
+    .filter((name): name is string => Boolean(name));
+
+  if (fromRoles.length > 0) {
+    return fromRoles;
+  }
+
+  return (userInfo.RolesString ?? '')
+    .split(',')
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0);
+}
+
+/** True when any of the roles held is one of `permitted`. */
+export function holdsAnyRole(
+  rolesHeld: readonly string[],
+  permitted: readonly string[],
+): boolean {
+  const held = new Set(rolesHeld.map(normalise));
+  return permitted.some((role) => held.has(normalise(role)));
+}
+
+/** True when the roles held grant `permission`. */
+export function hasPermission(
+  rolesHeld: readonly string[],
+  permission: Permission,
+): boolean {
+  return holdsAnyRole(rolesHeld, GRANTS[permission]);
+}

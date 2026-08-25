@@ -29,6 +29,50 @@ if (typeof (globalThis as { jest?: unknown }).jest === 'undefined') {
   };
 }
 
+// Web Storage repair (Node 25 + Vitest 4 jsdom).
+//
+// Node 25 ships `localStorage` / `sessionStorage` as globals gated behind
+// `--localstorage-file`. Started without a path, Node warns
+// ("`--localstorage-file` was provided without a valid path") and leaves a HOLLOW
+// object on `globalThis` — no `getItem`, no `setItem`, no `clear`. Vitest's jsdom
+// environment does not overwrite globals that already exist, so jsdom's real
+// `Storage` never lands and `window.localStorage.clear()` throws
+// "is not a function" in every test that touches storage.
+//
+// Repairing it here, once, keeps the workaround out of individual tests. Remove
+// when Vitest's jsdom environment wins over Node's own Web Storage globals.
+function createMemoryStorage(): Storage {
+  const entries = new Map<string, string>();
+
+  return {
+    get length() {
+      return entries.size;
+    },
+    clear: () => entries.clear(),
+    getItem: (key: string) => entries.get(String(key)) ?? null,
+    key: (index: number) => Array.from(entries.keys())[index] ?? null,
+    removeItem: (key: string) => void entries.delete(String(key)),
+    setItem: (key: string, value: string) =>
+      void entries.set(String(key), String(value)),
+  } as Storage;
+}
+
+if (typeof window !== 'undefined') {
+  (['localStorage', 'sessionStorage'] as const).forEach((name) => {
+    if (typeof window[name]?.getItem === 'function') return;
+
+    const storage = createMemoryStorage();
+    Object.defineProperty(window, name, {
+      value: storage,
+      configurable: true,
+    });
+    Object.defineProperty(globalThis, name, {
+      value: storage,
+      configurable: true,
+    });
+  });
+}
+
 // Polyfill for Web APIs needed by Next.js
 // These are required for testing files that import from 'next/server'
 if (typeof Request === 'undefined') {

@@ -10,19 +10,14 @@ import type { NextConfig } from 'next';
  * requirement flagged in project.md NFR-base-6 — no `Access-Control-Allow-*`
  * header is needed on either backend.
  *
- * The `NEXT_PUBLIC_*` fallbacks are read here for compatibility with the variable
- * names recorded in project.md §Data Source; they are consumed server-side in this
- * file only and must never be referenced from browser code
+ * These are the variable names project.md §Data Source records, and they are read
+ * server-side in this file only — never referenced from browser code
  * (see .claude/policies/bff-auth-pattern.md §Next.js Integration Pattern).
  */
-const AUTH_API =
-  process.env.AUTH_API_BASE_URL ??
-  process.env.NEXT_PUBLIC_AUTH_API_BASE_URL ??
-  'http://localhost:10010';
+const AUTH_API = process.env.AUTH_API_BASE_URL ?? 'http://localhost:10010';
 
 const TRANSACTIONS_API =
   process.env.TRANSACTIONS_API_BASE_URL ??
-  process.env.NEXT_PUBLIC_TRANSACTIONS_API_BASE_URL ??
   'http://localhost:10005/transactions-api';
 
 const nextConfig: NextConfig = {

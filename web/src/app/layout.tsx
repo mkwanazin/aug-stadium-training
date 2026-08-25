@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ToastContainer } from '@/components/toast/ToastContainer';
+import { ThemeApplier } from '@/components/theme/ThemeApplier';
 
 /**
  * Brand typography. `next/font/google` fetches at BUILD time and serves the files
@@ -39,8 +40,19 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
       <body className="antialiased">
+        {/*
+         * Puts the person's remembered light/dark choice on the page before
+         * anything else — including on sign in, which carries no switch of its own
+         * but is where they land after signing out.
+         */}
+        <ThemeApplier />
         <ToastProvider>
-          <main className="min-h-screen">{children}</main>
+          {/*
+           * A plain wrapper, NOT a <main>: each route owns its own main landmark
+           * (the signed-in shell puts it beside the sidebar), and nesting one main
+           * inside another leaves assistive tech with two.
+           */}
+          <div className="min-h-screen">{children}</div>
           <ToastContainer />
         </ToastProvider>
       </body>

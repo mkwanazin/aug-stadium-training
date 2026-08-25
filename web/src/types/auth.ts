@@ -34,3 +34,37 @@ export interface AuthErrorResponse {
   Error?: string;
   Message?: string;
 }
+
+/**
+ * `components.schemas.RoleRead` — one role an account holds.
+ *
+ * `Name` is an open string, NOT a `'Importer' | 'Approver'` union: the API's own
+ * example is `Viewer`, and an account may legitimately come back carrying a role
+ * this frontend grants nothing to (brief §Notes & Caveats, "Role set may exceed
+ * two"). Closing the union here would make that case unrepresentable.
+ */
+export interface RoleRead {
+  Id?: number;
+  Name?: string;
+  LastChangedUser?: string;
+  /** Spec example format: `2025-04-30 15:00:00` (SAST, per project.md §Compliance). */
+  LastChangedDate?: string;
+}
+
+/**
+ * `components.schemas.UserInfoRead` — body of `GET /v1/auth/userinfo`.
+ *
+ * `Roles[]` is the authoritative role list. `RolesString` is the same information
+ * flattened, but the spec never states how several roles are joined, so it is only
+ * a fallback (see `roleNamesOf` in `@/lib/auth/permissions`).
+ */
+export interface UserInfoRead {
+  Id?: number;
+  Email?: string;
+  FirstName?: string;
+  LastName?: string;
+  RolesString?: string;
+  Roles?: RoleRead[];
+  LastChangedUser?: string;
+  LastChangedDate?: string;
+}
