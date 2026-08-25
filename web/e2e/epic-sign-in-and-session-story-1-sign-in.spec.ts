@@ -128,6 +128,29 @@ const passwordField = (page: Page): Locator => page.getByLabel(/^\s*password/i);
 const signInButton = (page: Page): Locator =>
   page.getByRole('button', { name: /sign in/i });
 
+/**
+ * The copy each error banner leads with, as the person reads it. Patterns rather
+ * than exact strings, so a punctuation tweak in the copy does not break the
+ * locator while it still names one banner unambiguously.
+ */
+const REFUSAL_COPY = /those credentials were not accepted/i;
+const INCOMPLETE_SUBMISSION_COPY = /username and password are required/i;
+
+/**
+ * The application's OWN error banner, named by the copy it carries.
+ *
+ * Do not reduce this to a bare `getByRole('alert')`. The Next.js App Router
+ * injects a permanent route announcer —
+ * `<div role="alert" aria-live="assertive" id="__next-route-announcer__">` — into
+ * every page. It is framework-internal and cannot be removed, so an unqualified
+ * alert query ALWAYS matches at least that element, whatever this application
+ * rendered: it collides with a `toBeVisible()` under strict mode and can never
+ * be `toHaveCount(0)`. jsdom does not render the announcer, which is why only
+ * the Playwright layer sees this.
+ */
+const appErrorBanner = (page: Page, copy: RegExp): Locator =>
+  page.getByRole('alert').filter({ hasText: copy });
+
 test.describe('Epic Sign in and session, Story 1: Sign in', () => {
   test.beforeEach(async ({ context }) => {
     await context.clearCookies();
@@ -153,8 +176,10 @@ test.describe('Epic Sign in and session, Story 1: Sign in', () => {
     await expect(successBanner).toBeVisible();
     await expect(successBanner).toContainText(/signed in/i);
     await expect(successBanner).toContainText(/taking you to your files/i);
-    // The refusal copy must not appear on a successful attempt.
-    await expect(page.getByRole('alert')).toHaveCount(0);
+    // The refusal copy must not appear on a successful attempt. Named by that
+    // copy because Next.js's route announcer is a permanent `role="alert"`
+    // element on every page, so a bare alert query can never reach 0 here.
+    await expect(appErrorBanner(page, REFUSAL_COPY)).toHaveCount(0);
 
     // Let the deferred navigation fire. `/files` is Story 2's surface and is not
     // built yet, so this asserts where the user lands — not what is on it.
@@ -191,7 +216,13 @@ test.describe('Epic Sign in and session, Story 1: Sign in', () => {
     // own right (violations are usually state-specific). What the message SAYS
     // is AC-2's assertion, in the Vitest layer.
     await page.keyboard.press('Enter');
-    await expect(page.getByRole('alert')).toBeVisible();
+    // Named by its copy so this proves the APP's banner is on screen: Next.js's
+    // route announcer is a permanent `role="alert"` element, so a bare alert
+    // query both collides with it under strict mode and could be satisfied by it
+    // even if the form reported nothing.
+    await expect(
+      appErrorBanner(page, INCOMPLETE_SUBMISSION_COPY),
+    ).toBeVisible();
 
     // State 2 — the form carrying its validation errors.
     expect(await wcagViolations(page)).toEqual([]);

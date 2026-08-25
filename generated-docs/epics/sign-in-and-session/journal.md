@@ -101,3 +101,24 @@ Plain-language record of what was built and why, story by story.
   project grants nothing to (the auth API's own example is Viewer) gets the explanation in place at
   the address it typed — the route still answers 200, with the menu, the person's name and Sign out
   all still working.
+
+## Epic end — the end-to-end run in a real browser
+
+- The full end-to-end suite now passes: 12 checks across all four stories, run in a real browser
+  against the production build rather than the development one.
+- Getting there needed a one-off machine fix and two corrections to the checks themselves. The
+  browser the test tool drives was only half-installed on this machine — the headed build was
+  present but the headless one it actually uses was missing — so the first run failed all twelve
+  before a single page loaded. Nothing to do with the application.
+- Two of the checks were then wrong in ways only a real browser can expose. Next.js quietly adds an
+  invisible announcement element to every page for screen-reader users, and it is marked as an
+  alert; two of story 1's checks looked for "an alert" without saying whose, so one could never pass
+  and the other could have passed on the framework's element instead of ours. Both now name the
+  banner by the words the person actually reads, which proves more than before, not less.
+- Story 3's four checks could not find the password box at all: they asked for a label reading
+  exactly "Password", and ours reads "Password *" — the asterisk that marks it required. Corrected
+  to match the same pattern story 1 already used successfully on the same form. No timing, no
+  assertion and no application code was touched.
+- Worth knowing for later epics: the automated browser-free checks cannot see either of these
+  problems, because the stripped-down browser they run in does not add the announcement element and
+  matches labels differently. That is exactly the gap the real-browser run exists to close.

@@ -127,7 +127,12 @@ async function signIn(page: Page, roleName: string): Promise<void> {
   await mockAuthChain(page, roleName);
   await page.goto(SIGN_IN_ROUTE);
   await page.getByLabel(/email address/i).fill(IMPORTER_EMAIL);
-  await page.getByLabel(/^password$/i).fill(MOCK_PASSWORD);
+  // Not `/^password$/i`: the label is the word followed by a required marker
+  // (`<span aria-hidden="true">*</span>`), and `getByLabel` matches the label
+  // element's TEXT, which `aria-hidden` does not strip — so it reads as
+  // "Password *" and nothing end-anchored can ever match it. Leading-anchored,
+  // trailing-open, exactly as story 1's spec queries this same form.
+  await page.getByLabel(/^\s*password/i).fill(MOCK_PASSWORD);
   await page.getByRole('button', { name: /sign in/i }).click();
   await expect(page).toHaveURL(new RegExp(`${PROTECTED_ROUTE}$`));
 }
