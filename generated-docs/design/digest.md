@@ -21,6 +21,12 @@ A financial-services back-office console for bringing transaction files into a p
   Answers the Uncertainty asking whether 90 days is the real retention period.
 - **Received files — a row's `Open` action goes to that file's Processing history** *(received-files, 2026-08-25)*
   The design never says where Open leads. Review and Diagnose keep their own destinations; Open becomes the general "show me this file" route.
+- **Processing history — both file retrievals live on this screen, as two separately labelled actions** *(processing-history, 2026-08-25)*
+  The design places no download control on Processing history at all, and the File review header's `Download data` button carries no described behaviour anywhere. The data file recorded against the file log entry and the file exactly as it was received are offered as two distinct, plainly-named actions here. File review's undescribed `Download data` button is left unused until `file-review-and-decisions` settles it.
+- **Processing history — the change timestamp is worked out from the last completed step, and who acted is shown as plainly not recorded** *(processing-history, 2026-08-25)*
+  The file service holds neither an acting user nor a change timestamp — the same gap that kept the `Uploaded by` column off Received files. Both stay in the audit-trail summary: the change timestamp is derived from the last completed processing step's end time, and the acting user reads as a stated absence rather than a blank cell, so the row is ready when the backend supplies a value.
+- **Processing history — `Back to the file` routes by standing until File review exists** *(processing-history, 2026-08-25)*
+  The control is inert in the design, and its intended destination is the File review screen, which belongs to the not-yet-planned `file-review-and-decisions`. A faulted file goes to its diagnosis screen; every other file goes to Received files. When File review is built, only the non-faulted branch changes.
 
 ---
 
