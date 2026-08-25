@@ -13,7 +13,19 @@ A financial-services back-office console for bringing transaction files into a p
 
 ## Your Decisions
 
-*Nothing yet — this fills in as you settle things while we build.*
+- **Light and dark — people get a switch in the sidebar** *(sign-in-and-session, 2026-08-25)*
+  The design's light/dark control is a design-tool prop, not a user control. You chose to give
+  people a real switch in the sidebar rather than silently following the device setting. It
+  overrides the device preference and is remembered per person. Applies to every screen in the
+  application, not just sign-in — the switch lives in the shared shell.
+- **A locked account is told when it frees up** *(sign-in-and-session, 2026-08-25)*
+  After five refused sign-in attempts the message names the time the account becomes available
+  again ("Try again after 09:45") rather than only saying it is locked. It must still not confirm
+  or deny that the account exists.
+- **"Request the Approver role" emails a named administrator** *(sign-in-and-session, 2026-08-25)*
+  The permission-denied panel's request-access button sends an email to a configured administrator
+  address and confirms on screen that it was sent, naming the destination. Provisioning the role
+  after the request is still outside this build.
 
 ---
 
