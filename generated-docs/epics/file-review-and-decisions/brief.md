@@ -122,3 +122,56 @@ Baseline NFRs (accessibility, performance, responsive breakpoints, browser suppo
 - **Placeholder decision handlers must not carry forward.** The design's Approve/Reject actions write directly into local component state (e.g. "You · 08:41") and its "Download data"/"Cancel file" controls are inert — every decision in this epic must call the real approve/reject endpoints and reflect the actual response, including a failed decision (R20).
 - **Currency is ZAR in every example seen**, but §6.3's Currency rule is stated generically ("one of the accepted three-letter currency codes") — build against the code as data rather than hard-coding ZAR, while flagging to the user (an open Uncertainty in the digest) whether ZAR-only is the real intent.
 - **The 90-day retention window (R24/§6.9)** governs how far back standing/note/acting-user/timestamp history is visible; no "aged out" state was designed beyond the plain empty-listing copy already covered by R18 — do not invent additional UI for data older than 90 days beyond simply not showing it.
+
+### Added at plan time (2026-08-25) — verified against the specs and the parked epics
+
+- **There is no re-authentication endpoint.** `documentation/Authentication_API.yaml` exposes
+  exactly four operations — `/v1/auth/login`, `/v1/auth/logout`, `/v1/auth/userinfo` and
+  `/v1/health`. Nothing verifies a password without also establishing a session. FNFR1 (and
+  `project.md`'s NFR-base-7, project-wide) therefore has no backend operation behind it, not
+  merely no designed UI — the caveat above flags the missing *pattern*, which understates the
+  problem. Story 3 confirms by re-submitting the password to `login`, accepting the session
+  re-mint as a side effect; if a verify endpoint is added later, only that module changes.
+- **`GET /v1/transactions` accepts no query parameters at all** — verified: the path has no
+  `parameters` block whatsoever, not merely no file-scoping one. So the client fetches every
+  transaction in the system on every load and filters by `FileLogId`. This sits directly against
+  **FNFR2** (p95 ≤ 400 ms at 10³ records), whose budget is for *rendering* a thousand records,
+  not for fetching and sifting the whole table first. A scoped or paginated variant, or an
+  explicit acceptance of the cost, is needed before this scales.
+- **No operation records an account-number reveal.** The design's toast promises the reveal "is
+  recorded against your name" and POPIA is an active domain on this project, but the Transaction
+  Management API has nothing to record it against. The notice is built; the recording cannot be.
+  Either an endpoint closes it or the copy is making a promise the system does not keep.
+- **Partial failure on a bulk decision was undefined and is now resolved.** With no bulk
+  endpoint, `Approve all`/`Reject all` is N single calls, any of which can fail alone. The brief
+  requires the applied count in the confirmation copy but says nothing about failures: the run
+  continues through the remainder and the outcome names both numbers (story 5).
+- **`Uploaded by` is resolved here, not inherited.** `received-files` dropped the listing column
+  for want of a backing field, but its recorded decision states in terms that "the review screen's
+  meta-grid entry is unaffected" — so it deliberately left this cell open rather than settling it.
+  This epic settles it the same way and for the same reason, which is a data fact rather than a
+  preference: `FileLog` carries no property naming who uploaded a file and no lookup endpoint
+  supplies one, so there is nothing to render. The cell is omitted rather than shown empty or
+  filled with a placeholder, overriding the design's cell order, which places it third for the
+  Approver. Recorded in the digest's Your Decisions under this epic's name.
+- **The file's standing is not the value the service returns.** `received-files` established
+  `web/src/lib/file-logs/standing.ts` as the single resolution function: `CurrentStatus` carries
+  workflow-engine statuses (`Idle`/`Running`/`Finished`/`Suspended`/`Faulted`/`Cancelled`) and
+  `Validated` is derived from `LastExecutedActivityName`. This epic's "reviewable standing" gate
+  must call that function — reading `CurrentStatus` directly would mean the review surface never
+  opens, because `Validated` is never a status the service reports.
+- **The design's three tabs are three routes.** `faulted-file-diagnosis` is parked at
+  `/files/[logId]/diagnose` rather than as a tab on this screen, and `processing-history` will be
+  another route. So `Transactions` / `Processing history` / `Failed records` are built as a
+  link-styled tab bar across sibling routes, not a tab panel. This epic's route is
+  `/files/[logId]/review`, symmetrical with the parked diagnosis route; neither `received-files`
+  nor `faulted-file-diagnosis` had fixed that name.
+- **Build on `received-files`' shared components, do not rebuild them.** That epic's story 3
+  builds its sortable column header and pager as deliberately listing-agnostic "for File review's
+  tabs, Processing history and Import activity to reuse", and its stories 1 and 4 add the standing
+  badge, the loading ladder, the empty-state pattern and the failed-retrieval pattern. This epic
+  needs only `dialog` and `textarea` as new Shadcn primitives.
+- **`RoleGuard` is a hard prerequisite and does not exist yet.** Stories 2, 4, 5 and 6 all gate
+  Approver-only controls through it. It is `sign-in-and-session` story 4, still pending. This epic
+  cannot be built until that epic completes — over and above the `received-files` dependency
+  already recorded.
