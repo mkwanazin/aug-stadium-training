@@ -17,7 +17,7 @@ import { StatusBanner } from '@/components/feedback/StatusBanner';
  */
 const REASONS: Record<string, { lead: string; detail: string }> = {
   'idle-timeout': {
-    lead: 'You were signed out after 15 minutes without activity.',
+    lead: 'You were signed out after 15 minutes of inactivity.',
     detail: 'Sign in again to pick up where you left off.',
   },
   'session-expired': {

@@ -60,3 +60,26 @@ Plain-language record of what was built and why, story by story.
   light/dark hook (hidden by truncated gate output), so that now reads the remembered choice from
   browser storage the way React intends — which also means changing the theme in one tab now
   updates any other tab you have open.
+
+## Story 3 — Idle warning and session end
+
+- The signed-in area now has a session clock. Leave the app alone for 14 minutes and a warning
+  interrupts you, counting the last 60 seconds down and offering "Stay signed in"; ignore it and
+  you are returned to sign in with an explanation that inactivity ended the session. Separately,
+  eight hours after you signed in the session ends however busy you have been.
+- Both limits are measured by checking the clock once a second rather than by setting one long
+  timer per deadline. Long timers are the fragile way to do this: browsers throttle them in
+  background tabs and a sleeping laptop does not run them at all, so a session that should have
+  ended hours ago would quietly still be open. Checking the clock notices the elapsed time the
+  moment the tab runs again — and the same one-second beat is what the countdown needs anyway.
+- The eight-hour limit has to be measured from the moment you signed in, and the backend never
+  tells us when that was — the session cookie is deliberately unreadable and the user-info call
+  carries no issued-at. So sign-in itself now records the moment in the browser, and signing out
+  (or timing out) forgets it again.
+- The two automated layers for this story disagreed about what kind of dialog the warning is — one
+  asked for an ordinary dialog, the other for an alert dialog. An alert dialog is the right answer
+  for something that interrupts you and demands an answer, so the ordinary-dialog check was
+  corrected to match. Nothing about what the test proves changed.
+- The idle explanation on the sign-in screen now reads "after 15 minutes of inactivity" rather than
+  "without activity" — better English, and it is the wording the automated check for this story
+  looks for.

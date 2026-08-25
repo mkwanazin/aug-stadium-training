@@ -25,8 +25,12 @@
  *    window, 60-second warning, 8-hour absolute cap. Do NOT add shortened
  *    test-only durations or env switches to production: the flow is proven in
  *    Playwright with `page.clock` against the real values.
- * 3. The warning is a composed Shadcn (Radix) dialog — modal, `role="dialog"` —
- *    carrying a "Stay signed in" action.
+ * 3. The warning is a composed Shadcn (Radix) AlertDialog — modal,
+ *    `role="alertdialog"` — carrying a "Stay signed in" action. `alertdialog`,
+ *    not `dialog`: it interrupts and demands an answer, which is also what the
+ *    Playwright spec for this story locates (`getByRole('alertdialog')`).
+ *    Neither Testing Library nor Playwright resolves ARIA role inheritance, so
+ *    the queries below name the role the element actually carries.
  * 4. While the warning is open, ordinary keyboard activity must NOT silently
  *    dismiss it; only the explicit "Stay signed in" action (or expiry) closes it.
  *    AC-2's "simply resuming work" reset applies BEFORE the warning appears.
@@ -110,7 +114,7 @@ describe('Epic sign-in-and-session, Story 3: idle warning keyboard focus', () =>
       await vi.advanceTimersByTimeAsync(TIME_UNTIL_WARNING_MS);
     });
 
-    const warning = await screen.findByRole('dialog');
+    const warning = await screen.findByRole('alertdialog');
 
     // The warning takes focus, so a keyboard user is not left stranded on the page
     // behind an alert they cannot see.
@@ -142,7 +146,7 @@ describe('Epic sign-in-and-session, Story 3: idle warning keyboard focus', () =>
     await user.keyboard('{Enter}');
 
     await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     });
 
     // Focus returns to exactly where the person was, so they carry straight on.

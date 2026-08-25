@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { login } from '@/lib/api/auth';
 import { isAPIErrorWithStatus } from '@/lib/api/errors';
+import { markSessionStart } from '@/lib/auth/session-lifetime';
 import { formatClockTime } from '@/lib/format/datetime';
 
 import type { FormEvent } from 'react';
@@ -192,6 +193,10 @@ export function SignInForm() {
     setIsSubmitting(true);
     try {
       await login({ Username: email.trim(), Password: password });
+      // The 8-hour absolute cap is measured from this moment (NFR-base-7), and
+      // this is the only place that knows it — the session cookie is opaque and
+      // `userinfo` does not say when the session was issued.
+      markSessionStart();
       refusals.current = { identity: '', count: 0 };
       lockout.current = null;
       setOutcome({ kind: 'success' });

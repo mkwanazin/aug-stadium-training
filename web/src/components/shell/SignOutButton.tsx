@@ -7,6 +7,7 @@ import { StatusBanner } from '@/components/feedback/StatusBanner';
 import { Button } from '@/components/ui/button';
 import { logout } from '@/lib/api/auth';
 import { SIGN_IN_ROUTE } from '@/lib/auth/session';
+import { clearSessionStart } from '@/lib/auth/session-lifetime';
 
 /** Copy this control owns. Voice: careful custodian (brief R20). */
 const COPY = {
@@ -45,6 +46,10 @@ export function SignOutButton() {
       setHasFailed(true);
       return;
     }
+
+    // The session is over, so the moment it began is no longer of any use — and
+    // leaving it behind would age the next session before it started.
+    clearSessionStart();
 
     // Only now is the session over. `push`, not `replace`: the signed-in page
     // stays in history, and pressing Back finds a dead session and is returned

@@ -19,6 +19,8 @@
 | `StatusBanner` | `web/src/components/feedback/StatusBanner.tsx` | Outcome banner (success / error / warning / info): bold lead + follow-up, status-coloured left border and icon, live-region role chosen by tone |
 | `SignInForm` | `web/src/components/auth/SignInForm.tsx` | Credential form: blur-level and submit-level validation, refusal / lockout / unavailable / success outcomes, deferred redirect after the success banner |
 | `SignInReasonBanner` | `web/src/components/auth/SignInReasonBanner.tsx` | Renders the explanation for `/sign-in?reason=idle-timeout` and `?reason=session-expired` |
+| `SessionTimeoutManager`, `IdleWarningDialog` | `web/src/components/session/` | The signed-in area's session lifetime: 15-minute idle window warned for its final 60 seconds by an `alertdialog` with a live `timer` countdown, plus the 8-hour absolute cap; ends the session and returns to `/sign-in` with the reason. Takes no timing props |
+| `IDLE_WINDOW_MS`, `IDLE_WARNING_LEAD_MS`, `ABSOLUTE_SESSION_MS`, `markSessionStart`, `readSessionStart`, `clearSessionStart`, `anchorSessionStart` | `web/src/lib/auth/session-lifetime.ts` | The NFR-base-7 session windows, and the remembered moment (`localStorage`) the absolute cap is measured from |
 | `formatClockTime`, `SAST_TIME_ZONE` | `web/src/lib/format/datetime.ts` | Wall-clock time in South African time (`09:45`) — the fixed zone every timestamp is presented in |
 
 ## Conventions
@@ -33,11 +35,14 @@
 - Session gating is two-sided: `web/src/middleware.ts` redirects any request without a `session` cookie to `/sign-in`, and the `(app)` layout revalidates liveness in the browser. The matcher is an *exclusion* list (`sign-in`, `v1/auth`, `transactions-api`, `_next`, `favicon.ico`), so a route a later epic adds is protected by default.
 - Visibility is decided by `session.can(<permission>)`, never by a role equality test or an Importer/Approver ternary — an account may hold both roles, or one the project grants nothing to.
 - Each route owns exactly one `<main>` landmark; the root layout is a plain wrapper.
-- Sign out and any other session-ending action awaits its API response before navigating, and says so if the response never confirms.
+- Sign out and any other session-ending action awaits its API response before navigating, and says so if the response never confirms — except a timeout-driven end, which awaits the response but returns the person to sign in either way, since the session is over regardless and there is no signed-in screen left to say it on. Every such path clears the recorded session start.
+- Modal veils use the `--scrim` token (`bg-scrim`), never Tailwind's `bg-black/50` — the Shadcn overlay primitive is adjusted to it on install.
+- Time-limit behaviour is measured by comparing `Date` readings on a one-second tick, not by one long `setTimeout` per deadline: throttled background tabs and suspended machines do not run long timers, and a fake clock can drive either.
 
 ## Cross-epic debt
 
 - Account lockout after five refused sign-ins is counted **in the browser** and resets on reload — presentation only, not enforcement. Replace when the Authentication API exposes lockout state (it documents no locked-account response today).
 - The sidebar menu offers `Upload a file`, `Import activity` and `File settings` before those screens exist; each 404s until its epic builds it. Remove a destination from `NAV_GROUPS` if its epic is dropped.
 - A person who chose the dark theme sees one light frame on a full page load: the hydrating render must use the default the server rendered, so the remembered choice only takes effect once hydration completes. Fix with a pre-paint theme script if it becomes objectionable.
+- The 8-hour absolute cap is measured from a sign-in timestamp the browser remembers, because no API tells us when the session was issued. If that record is missing (storage cleared, a `session` cookie this browser never saw created) the cap is re-anchored at first mount, which can extend a session past eight real hours. Replace once the Authentication API exposes the session's issued-at.
 - `roleNamesOf` falls back to splitting `RolesString` on `,` when `Roles[]` is absent; the Authentication API never documents how it joins several roles. Drop the fallback once the multi-role shape is confirmed.
