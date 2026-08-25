@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "import-activity-and-export",
+    "name": "Import activity and export",
+    "createdAt": "2026-08-25T13:35:44.494Z",
+    "dependsOn": [
+      "file-review-and-decisions"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [
+      "Verify the Files approved and Files rejected tiles against files whose standing you already know. Nothing in the file record itself says a file was approved or rejected, so the report works it out from the transactions on that file - approved only when every transaction has been kept, rejected as soon as one has been turned back. If your business counts them differently, the tiles and the breakdown will show believable but wrong numbers, and no automated test can catch it because the tests count the same way.",
+      "Verify the finance export opens correctly in whatever finance uses. The app writes the seven columns in the order your requirements name them, dates in South African time, and takes transaction type and currency exactly as the service returns them - so a file may carry C and D rather than Credit and Debit, depending on what the service stores. If finance expects a different column order, date format or wording, the file will import wrongly at their end."
+    ],
+    "manualTestResults": []
+  },
+  "phase": "READY-TO-BUILD",
+  "stories": {
+    "1": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "2": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "3": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
+  "halt": null,
+  "lastUpdated": "2026-08-25T13:44:57.472Z"
+}
