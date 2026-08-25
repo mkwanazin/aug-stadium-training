@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "faulted-file-diagnosis",
+    "name": "Faulted file diagnosis",
+    "createdAt": "2026-08-25T13:18:38.245Z",
+    "dependsOn": [
+      "received-files"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [
+      "Verify the recorded fault message in the banner: the app reads it from a note on the processing step that failed, because neither of the two file records the service documents carries a fault-message field at all. If the real text lives somewhere else, the banner will name the step that failed but never say why, on every faulted file you open.",
+      "Verify that a failing record shows which value was wrong: the app expects the service to mark the offending values and supply the sentence explaining the failure. The example payload in the specification carries neither. If the real payload also carries neither, every failing record will list its fields with nothing picked out and no explanation, which is the one thing this screen exists to show.",
+      "Verify the bulk error file control appears exactly when a file exists: the service reports its presence as a piece of text rather than a yes/no, and the possible values are not documented. A wrong reading either hides a download that is really there, or offers one that fails when pressed."
+    ],
+    "manualTestResults": []
+  },
+  "phase": "READY-TO-BUILD",
+  "stories": {
+    "1": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "2": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "3": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
+  "halt": null,
+  "lastUpdated": "2026-08-25T13:23:22.707Z"
+}

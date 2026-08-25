@@ -85,7 +85,7 @@ BR8. When validation fails for some of a file's records, the disposition applies
 
 ## Out of Scope
 
-- **Retrying or re-running validation for a faulted file.** No such control was designed on this screen, even though the spec exposes `POST /v1/files/retry-validation`. Flagged as an open design uncertainty (see Notes & Caveats) — not built in this epic.
+- **Retrying or re-running validation for a faulted file — settled, deliberately not built.** The design digest raised this as an open uncertainty ("No retry affordance was designed for a faulted file… Should a faulted file be retryable from this screen?") and the spec does expose `POST /v1/files/retry-validation`. **Decided at planning: keep it out.** R49/R50 (one correction attempt is available after a validation failure; a successful correction resumes at transform rather than re-reading the file) describe what the run does internally — the same behaviour BR2/BR3 below record — not a control a person presses. This screen therefore stays read-only apart from the single cancel action, matching the design, which drew no retry control. `POST /v1/files/retry-validation` exists and is **deliberately unused** by this epic; do not add a retry affordance, and do not re-raise this as a design choice at the stories approval — it is answered.
 - **Editing or correcting a failing record's values.** BR-04/BR-05 describe an automatic backend remediation attempt and re-entry at transform, not a user-facing correction form; no such form was designed.
 - **Approver decisioning (approve/reject).** Delivered by `file-review-and-decisions` for `Validated` files — this screen only ever shows `Faulted` files and has no decision affordance.
 - **The full processing-history timeline.** This epic only provides the `Processing history` navigation link; the timeline screen itself belongs to a later epic.
@@ -95,6 +95,26 @@ BR8. When validation fails for some of a file's records, the disposition applies
 
 ## Notes & Caveats
 
+- **Where this screen lives, and what it inherits.** Route `/files/[logId]/diagnose`, at
+  `web/src/app/(app)/files/[logId]/diagnose/page.tsx` — nested under the `/files` listing so the
+  design's `Imports / <file name>` breadcrumb reads true. **This route is declared by this epic**
+  and is the value `received-files` must point its per-row `Diagnose` action at; that epic is being
+  planned concurrently, so re-verify the two agree at BUILD. The screen sits inside the `(app)`
+  layout built by `sign-in-and-session` and consumes it unchanged: the 224px sidebar, role-gated nav
+  group, signed-in block, `Sign out`, the sidebar light/dark switch, the session check via
+  `GET /v1/auth/userinfo`, and `@/components/auth/RoleGuard` for the Importer-only gate. Do not
+  rebuild any of it, and do not create a `layout.tsx` or a route group here. Two further reuse
+  targets are owned by `received-files` — the standing badge that renders the `Faulted` chip, and the
+  listing's loading-timing convention (nothing under 300ms, then a placeholder, then a
+  still-working message), which applies to the failing-records fetch. Confirm both component paths
+  at BUILD.
+- **Backend access is same-origin; no CORS work here.** Resolved project-wide during
+  `sign-in-and-session` story 1: the browser never addresses the Transactions API directly. Next.js
+  rewrites proxy `/transactions-api/*` from the app's own origin to `http://localhost:10005`, so the
+  session cookie stays first-party. `TRANSACTIONS_API_BASE_URL` is read **server-side only and must
+  stay unprefixed** — a `NEXT_PUBLIC_` prefix would inline the internal host and port into the
+  client bundle. NFR-base-6 is closed. Call every endpoint through the shared API client at
+  `web/src/lib/api/client.ts`, never a bare `fetch()`.
 - **Prototype harness chrome must not carry forward.** The Diagnose artboard opens with a "Prototype harness — fixture data, no server" strip and (on most screens) a `Viewing as` role switch and `Reset demo data` button. None of this is product — the real role comes from the signed-in user's session.
 - **Fixture data → real API calls.** The three failing records and the single faulted file shown in the artboard are hard-coded sample values; they must be replaced by live calls to `FileValidationErrorColumnGetList` (columns) and `FileValidationErrorGetList` (records), scoped by `FileLogId`.
 - **Inline SVG → icon components.** The warning-triangle (error banner), download-arrow (`Bulk error file`) and bin (`Cancel run`) icons are pasted inline in the artboard; rebuild as shared icon components per [styling-centralisation.md](../../../.claude/policies/styling-centralisation.md).
