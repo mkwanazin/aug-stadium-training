@@ -89,7 +89,7 @@ A financial-services back-office console for bringing transaction files into a p
 | Aspect | Value |
 |---|---|
 | Base URL | `http://localhost:10010` |
-| Env var | `NEXT_PUBLIC_AUTH_API_BASE_URL` |
+| Env var | `AUTH_API_BASE_URL` (server-side only — **not** `NEXT_PUBLIC_`) |
 | Auth scheme | cookie (session, browser-managed) |
 | Auth header | N/A — no header the frontend sets |
 | Auth value format | N/A |
@@ -99,14 +99,14 @@ A financial-services back-office console for bringing transaction files into a p
 | Smoke-test status | verified |
 | Smoke-test verified at | 2026-08-25T09:37:36Z |
 | Smoke-test notes | Re-runnable script: `generated-docs/specs/api-smoke-test-auth.sh` |
-| CORS / proxy notes | No `Access-Control-Allow-Origin` observed on an unauthenticated probe (inconclusive — no `Origin` header was sent). Browser calls from `localhost:3000` are cross-origin to this port; re-verify with `-H "Origin: http://localhost:3000"` and confirm `Access-Control-Allow-Credentials: true` before wiring login/userinfo/logout. |
+| CORS / proxy notes | **Resolved — no CORS required.** The browser never calls this port directly. Next.js rewrites proxy `/v1/auth/*` from the app's own origin to `http://localhost:10010`, so every request is same-origin and the session cookie is first-party. Verified live during epic `sign-in-and-session` story 1: `POST http://localhost:3000/v1/auth/login` reaches `:10010` and returns 401 for bogus credentials. No change is needed on the backend. |
 
 ### Backend connectivity — Transactions API
 
 | Aspect | Value |
 |---|---|
 | Base URL | `http://localhost:10005/transactions-api` |
-| Env var | `NEXT_PUBLIC_TRANSACTIONS_API_BASE_URL` |
+| Env var | `TRANSACTIONS_API_BASE_URL` (server-side only — **not** `NEXT_PUBLIC_`) |
 | Auth scheme | cookie (same `session` cookie, minted by the auth API on a different port) |
 | Auth header | N/A — cookie-based |
 | Auth value format | N/A |
@@ -116,11 +116,24 @@ A financial-services back-office console for bringing transaction files into a p
 | Smoke-test status | verified |
 | Smoke-test verified at | 2026-08-25T09:37:36Z |
 | Smoke-test notes | Re-runnable script: `generated-docs/specs/api-smoke-test-transactions.sh` |
-| CORS / proxy notes | Same caveat as the auth API; additionally confirm the cookie set by `:10010` is delivered on cross-port requests to `:10005` (check `SameSite`/`Domain` on the `Set-Cookie` once login is exercised). |
+| CORS / proxy notes | **Resolved — no CORS required.** Next.js rewrites proxy `/transactions-api/*` from the app's own origin to `http://localhost:10005`. Because both backends are reached through the app's origin, the cross-port cookie-delivery question is moot: the session cookie minted by `:10010` is first-party to the app and is carried on requests the server proxies to `:10005`. |
 
-### Known configuration drift — action item
+### Configuration drift — resolved
 
-`web/.env.local` and `web/.env.example` still carry the template default `NEXT_PUBLIC_API_BASE_URL=http://localhost:8042`, which matches neither backend. Both files must be updated to carry `NEXT_PUBLIC_AUTH_API_BASE_URL=http://localhost:10010` and `NEXT_PUBLIC_TRANSACTIONS_API_BASE_URL=http://localhost:10005/transactions-api` in place of the stale default before BUILD wires the API client.
+*Resolved during epic `sign-in-and-session`, story 1.* The template default
+`NEXT_PUBLIC_API_BASE_URL=http://localhost:8042` has been removed from `web/.env.local` and
+`web/.env.example` and replaced by:
+
+```
+AUTH_API_BASE_URL=http://localhost:10010
+TRANSACTIONS_API_BASE_URL=http://localhost:10005/transactions-api
+```
+
+**Why no `NEXT_PUBLIC_` prefix.** In Next.js, `NEXT_PUBLIC_` inlines a value into the client
+bundle — using it here would publish the internal backend hostnames and ports to every browser
+that loads the app. These two values are read only on the server, by the rewrite configuration in
+`web/next.config.ts`, so they must stay unprefixed. The browser only ever addresses the app's own
+origin.
 
 ### API specs
 
@@ -179,7 +192,7 @@ A financial-services back-office console for bringing transaction files into a p
 - **NFR-base-3:** Responsive design — mobile (≥360px) / tablet (≥768px) / desktop (≥1280px) breakpoints (the source spec targets desktop-class and tablet-class screens only, from 1280px / 768px respectively — no phone-width requirement was stated)
 - **NFR-base-4:** Browser support — latest two versions of Chrome / Edge / Firefox / Safari
 - **NFR-base-5:** Error UX — user-visible error states with retry affordance for all async operations
-- **NFR-base-6:** CORS / cross-origin — the two backends run on different local ports (`:10010` auth, `:10005` transactions) with no confirmed `Access-Control-Allow-Origin` / `Access-Control-Allow-Credentials` headers observed; a Next.js rewrite proxy or confirmed CORS configuration is required before either is wired into the frontend (see Data Source connectivity notes above)
+- **NFR-base-6:** CORS / cross-origin — **resolved** during epic `sign-in-and-session` (story 1). Same-origin Next.js rewrites proxy `/v1/auth/*` → `:10010` and `/transactions-api/*` → `:10005`, so the browser only ever addresses the app's own origin and no `Access-Control-Allow-Origin` / `Access-Control-Allow-Credentials` configuration is needed on either backend. The session cookie is first-party. Verified live against the running auth service. Later epics must keep calling the backends through these rewrites rather than reintroducing direct cross-origin calls.
 - **NFR-base-7:** Session UX — 15-minute idle timeout with a 60-second idle warning, 8-hour absolute session timeout, and re-authentication required before approve/reject-class actions (source spec §6.6.1)
 
 ---
