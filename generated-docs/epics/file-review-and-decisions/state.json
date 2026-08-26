@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "file-review-and-decisions",
+    "name": "File review and decisions",
+    "createdAt": "2026-08-25T13:43:32.599Z",
+    "dependsOn": [
+      "received-files"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [
+      "Verify that confirming your password before a decision does not sign you out. The requirement says you must re-authenticate before approving or rejecting, but the sign-in service has no operation that only checks a password — it has login, logout, who-am-I and a health check, and nothing else. So the app confirms you by quietly signing you in again, which mints a fresh session cookie as a side effect. Approve one transaction and check you are still signed in and still on the file afterwards. If the fresh cookie displaces the one you were using, every decision will bounce you to sign-in at the moment you commit it.",
+      "Verify that a file awaiting a decision actually reaches this screen. The whole epic assumes a file comes to rest at the validated step, because that is the only standing the Review action leads from. No file in the system has ever been in that state — the one real file went straight to a finished workflow. If the pipeline never leaves a file awaiting a decision, this screen has no way in and nothing to show, and no test would have caught it because the tests supply the state themselves.",
+      "Verify the transaction listing is still quick once there is real data behind it. The transactions service takes no parameters at all — no file, no page, no limit — so it returns every transaction in the system on every load and the app picks out the ones belonging to the file you opened. With one small file that is invisible. The requirement asks for a listing that renders inside 400ms at a thousand records, and that budget was written for drawing a thousand rows, not for fetching and sifting the whole table first. Watch how long the screen takes once a few thousand transactions exist across several files.",
+      "Verify the transaction dates you see are the times you expect. The service returns a date and time with no time zone attached to it, so the application is not converting anything — it assumes that value was recorded in South African time and shows it as-is. This is the same assumption the file listing already makes about process dates. If the backend actually records these in UTC, every transaction date on this screen reads two hours early.",
+      "Verify whether revealing an account number needs to be recorded anywhere. When you reveal a number the app tells you the reveal is recorded against your name, exactly as the design says — but there is no operation anywhere in the service that records it, so nothing is written down. Either an endpoint is needed to make that sentence true, or the sentence should not be making the promise. This matters more than usual here because account numbers are the personal data this build is masking in the first place."
+    ],
+    "manualTestResults": []
+  },
+  "phase": "READY-TO-BUILD",
+  "stories": {
+    "1": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "2": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "3": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "4": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "5": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "6": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
+  "halt": null,
+  "lastUpdated": "2026-08-25T13:43:32.599Z"
+}

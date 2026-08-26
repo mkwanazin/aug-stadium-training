@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "processing-history",
+    "name": "Processing history",
+    "createdAt": "2026-08-25T13:32:28.359Z",
+    "dependsOn": [
+      "file-review-and-decisions"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [
+      "Verify the steps read in the order they actually ran: the timeline assumes the file service hands back a file's processing steps already in run order, because nothing in the recorded step carries a sequence number. If the service returns them in some other order — newest first, or in whatever order the database yields — the timeline will read out of order and still look entirely normal, because the app has no way to tell.",
+      "Verify both retrievals actually hand you a file: the app assumes each retrieval streams the file itself, so the browser saves it under the file's own name. The service's own description of both retrieval operations talks about a file path rather than file content, so if either one answers with a path or a wrapper instead, you would get a broken or oddly-named download.",
+      "Verify who acted on a file and when it last changed: the file service holds neither value, so the app works the change time out from the last completed processing step and states plainly that the acting user is not recorded. If the real source is somewhere else, the time shown may not be the change you care about, and the missing name will stay missing until the backend exposes it.",
+      "Verify what happens to a file older than 90 days: the app assumes the service simply stops returning a file's processing history once it passes the 90-day window, so the screen shows its plain not-recorded state. If the service keeps returning older records, history the business considers expired stays visible; if it answers with an error instead, you will see a failure message rather than a plain statement that the history is no longer held."
+    ],
+    "manualTestResults": []
+  },
+  "phase": "READY-TO-BUILD",
+  "stories": {
+    "1": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "2": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "3": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
+  "halt": null,
+  "lastUpdated": "2026-08-25T13:45:19.000Z"
+}

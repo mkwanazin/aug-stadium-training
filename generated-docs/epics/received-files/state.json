@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "received-files",
+    "name": "Received files",
+    "createdAt": "2026-08-25T13:01:40.868Z",
+    "dependsOn": [
+      "upload-a-file"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [
+      "Verify that turning Active files only OFF really shows you every file, active or not. The file service was probed and it insists on being told: `No` returns the inactive set, and every other value tried returned the same rows. But the system currently holds exactly one file and it is active, so that probe could not tell apart \"this value returns everything\" from \"this value returns active files only\". Once a file that is no longer active exists, check it appears with the toggle off and disappears with it on - if it does not, the toggle looks like it does nothing and inactive files are silently missing.",
+      "Verify that the process dates you see are the times you expect. The service returns a date and time with no time zone attached to it (for example 2026-08-24 08:45:25), so the application is not converting anything - it is assuming that value was recorded in South African time and showing it as-is. If the backend actually records these in UTC, every process date on this screen will read two hours early.",
+      "Verify the standings look right once there is more than one file in the system. The standing rule is being written against a single real file that reports a finished workflow and an end step. Files that are running, idle, suspended, or that stop at a step nobody has seen yet will fall to the neutral fallback badge - check those read sensibly rather than showing a raw internal word to the user.",
+      "Verify that a file awaiting a decision actually reaches the Review action. The Review label and the awaiting-a-decision count both depend on a file resting at the validated step. No file in the system has ever been in that state, so neither has been seen working against real data - if the pipeline never leaves a file there, the way into File review does not exist."
+    ],
+    "manualTestResults": []
+  },
+  "phase": "READY-TO-BUILD",
+  "stories": {
+    "1": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "2": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "3": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "4": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
+  "halt": null,
+  "lastUpdated": "2026-08-25T13:22:00.000Z"
+}

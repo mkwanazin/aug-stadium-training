@@ -26,6 +26,36 @@ A financial-services back-office console for bringing transaction files into a p
   The permission-denied panel's request-access button sends an email to a configured administrator
   address and confirms on screen that it was sent, naming the destination. Provisioning the role
   after the request is still outside this build.
+- **Received files — the Standing column is worked out from the step a file last completed, not from the status the service returns** *(received-files, 2026-08-25)*
+  The file service reports the workflow engine's own six statuses (Idle, Running, Finished, Suspended, Faulted, Cancelled), not the eight standings drawn in the design. Standing is derived from the last completed step, named in the design's words, with a faulted or cancelled file overriding that, and anything unrecognised shown plainly on a neutral badge. Overrides the design's implied one-to-one mapping.
+- **Received files — the `Uploaded by` column is not built** *(received-files, 2026-08-25)*
+  No field in the file service names who uploaded a file, and no lookup endpoint exists that would supply one. The column is left out until the backend exposes it. Overrides the design's Approver-only column and the review screen's meta-grid entry is unaffected.
+- **Received files — the 90-day retention footnote is shown as designed** *(received-files, 2026-08-25)*
+  Answers the Uncertainty asking whether 90 days is the real retention period.
+- **Received files — a row's `Open` action goes to that file's Processing history** *(received-files, 2026-08-25)*
+  The design never says where Open leads. Review and Diagnose keep their own destinations; Open becomes the general "show me this file" route.
+- **Processing history — both file retrievals live on this screen, as two separately labelled actions** *(processing-history, 2026-08-25)*
+  The design places no download control on Processing history at all, and the File review header's `Download data` button carries no described behaviour anywhere. The data file recorded against the file log entry and the file exactly as it was received are offered as two distinct, plainly-named actions here. File review's undescribed `Download data` button is left unused until `file-review-and-decisions` settles it.
+- **Processing history — the change timestamp is worked out from the last completed step, and who acted is shown as plainly not recorded** *(processing-history, 2026-08-25)*
+  The file service holds neither an acting user nor a change timestamp — the same gap that kept the `Uploaded by` column off Received files. Both stay in the audit-trail summary: the change timestamp is derived from the last completed processing step's end time, and the acting user reads as a stated absence rather than a blank cell, so the row is ready when the backend supplies a value.
+- **Processing history — `Back to the file` routes by standing until File review exists** *(processing-history, 2026-08-25)*
+  The control is inert in the design, and its intended destination is the File review screen, which belongs to the not-yet-planned `file-review-and-decisions`. A faulted file goes to its diagnosis screen; every other file goes to Received files. When File review is built, only the non-faulted branch changes.
+- **File review — confirming your password once per review, not before every decision** *(file-review-and-decisions, 2026-08-25)*
+  No artboard shows a step-up prompt before Approve or Reject, and the sign-in service has no operation that only checks a password without also establishing a session. You chose a confirmation on the first decision of a file, holding for the rest of that review and expiring with the idle session — not one prompt per decision, which on a twenty-row file would be twenty prompts and would push people towards `Approve all` to avoid them. The prompt is built as a dialog matching the existing reject and confirm dialogs. This is an interaction the design does not contain at all, so do not rebuild the decision paths without it.
+- **File review — a part-failed bulk decision carries on and reports both counts** *(file-review-and-decisions, 2026-08-25)*
+  There is no single approve-this-file operation, so `Approve all` is one call per transaction and any one of them can fail alone. You chose to settle everything that can be settled and name both counts — settled and not settled — rather than stopping at the first failure and leaving the file in a half-settled state nobody chose. The design's toast copy covers only the success case.
+- **File review — `Uploaded by` is not in the meta grid either** *(file-review-and-decisions, 2026-08-25)*
+  `received-files` left this cell explicitly out of scope when it dropped the listing column, so it is settled here rather than inherited. The reason is the same and is a data fact, not a preference: `FileLog` carries no property naming who uploaded a file and no lookup endpoint supplies one, so there is nothing to render. The cell is omitted rather than shown empty or filled with a placeholder. Overrides the design's meta grid, which places it third for the Approver. Revisit if the backend adds the field.
+- **File review — the Transactions / Processing history / Failed records tabs are links between screens, not panels** *(file-review-and-decisions, 2026-08-25)*
+  The design draws all three as tabs on one screen, but faulted-file diagnosis is already built as its own screen (`/files/[logId]/diagnose`) and processing history will be another. Tab panels would therefore be panels that can never hold anything. The tab bar keeps its designed appearance but navigates between sibling screens. The review screen itself is `/files/[logId]/review`.
+- **Processing history — `Back to the file` now has its real destination** *(file-review-and-decisions, 2026-08-25)*
+  Supersedes the routing-by-standing entry above, which was a stand-in taken while this epic was still unplanned. File review is now planned at `/files/[logId]/review`, so the non-faulted branch goes there rather than to Received files. The faulted branch is unchanged.
+- **An Importer may see the File settings destination** *(sign-in-and-session, 2026-08-26)*
+  The design files File settings under an **Administration** heading, and §6.5 gives the Importer only
+  read access to the File Setting record — so it was built Approver-only. You decided an Importer should
+  see the destination and its screens for now. Gate the menu entry and the screen on a *view* permission
+  both roles hold; the administer actions stay Approver-only. Do not rebuild the menu as Approver-only
+  from the Administration grouping in the design.
 
 ---
 

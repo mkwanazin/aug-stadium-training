@@ -16,12 +16,15 @@ Every epic in this project, what it delivers, and what it builds on. Live status
 | 5 | Faulted file diagnosis (`faulted-file-diagnosis`) | When a run faults, the Importer sees the step that failed and the recorded message, inspects each failing record with the values that caused it, downloads the error file when one exists, and cancels the run before anything is committed. | Received files (`received-files`) |
 | 6 | Processing history (`processing-history`) | Anyone accountable follows a file's processing run step by step, with timings, outcomes and notes, and retrieves the data and the original file kept for it. | File review and decisions (`file-review-and-decisions`) |
 | 7 | Import activity and export (`import-activity-and-export`) | The Importer and the Approver see how many files were imported, approved and rejected over a chosen period and by file setting, and the Approver hands approved transactions to finance as a download. | File review and decisions (`file-review-and-decisions`) |
-| 8 | File settings administration (`file-settings-administration`) | The Approver keeps the rules that decide which files are accepted current — the settings, their locations and their bulk-load parameters — without waiting on a release, and can see what changed and who changed it. | Sign in and session (`sign-in-and-session`), Upload a file (`upload-a-file`) |
+| 8 | File settings administration (`file-settings-administration`) | The Approver keeps the rules that decide which files are accepted current — the settings, their locations and their bulk-load parameters — without waiting on a release, and can see what changed and who changed it. | Sign in and session (`sign-in-and-session`), Upload a file (`upload-a-file`), Received files (`received-files`) |
 
 Epic 1 is the only dependency-free root — the build starts there. Epics 4 and 5 share a
 dependency on epic 3 and can be built concurrently; so can epics 6 and 7 off epic 4.
 Epic 8 depends on epic 2 because epic 2 is where the shared in-app application shell
-(sidebar, brand lockup, nav group, signed-in block, sign out) is built once and inherited.
+(sidebar, brand lockup, nav group, signed-in block, sign out) is built once and inherited, and on
+epic 3 because epic 3 is where the shared listing components — sortable column headers, the pager,
+the 300 ms loading ladder and the empty/partial-retrieval states — are built once and reused. Epic 8
+therefore lands last.
 
 ## Coverage
 
