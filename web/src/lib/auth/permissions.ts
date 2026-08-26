@@ -15,13 +15,29 @@
  * re-deriving the rule.
  *
  * Source of the grants below: `documentation/requirements-application.md` §6.5,
- * carried into the epic brief as BR5 (Importer) and BR6 (Approver).
+ * carried into the epic brief as BR5 (Importer) and BR6 (Approver), plus the
+ * 2026-08-26 user decision on `File settings` recorded in project.md §Roles &
+ * Permissions and the design digest §Your Decisions.
  */
 
 import type { UserInfoRead } from '@/types/auth';
 
-/** Role names the project currently defines (project.md §Roles & Permissions). */
-export const ROLE_IMPORTER = 'Importer';
+/**
+ * Role names EXACTLY as the Authentication API spells them — verified live against
+ * `GET /v1/auth/userinfo` on 2026-08-26 and tabled in project.md §Roles &
+ * Permissions. The importer role is `File Importer`, WITH THE SPACE.
+ *
+ * `documentation/requirements-application.md` §6.5 calls that role "Importer" and
+ * intake copied the prose spelling here, so the grant table matched a name the
+ * backend never returns: every genuine importer account held no permission at all
+ * and was shown the permission-denied panel over an empty menu.
+ *
+ * One verified name per role — no alias lists and no fuzzy matching. Comparison is
+ * case-insensitive (see `normalise`) and otherwise exact, so the next name change
+ * fails loudly here instead of being absorbed by a spelling that happens to be
+ * tolerated.
+ */
+export const ROLE_IMPORTER = 'File Importer';
 export const ROLE_APPROVER = 'Approver';
 
 /**
@@ -32,11 +48,22 @@ export type Permission =
   | 'files.view'
   | 'files.upload'
   | 'imports.report'
+  | 'fileSettings.view'
   | 'fileSettings.administer';
 
 /**
  * Which roles hold which permission. An account holding ANY of the listed roles
  * has the permission; an account holding none of them does not.
+ *
+ * `fileSettings` is deliberately TWO permissions, not one:
+ *  - `fileSettings.view` — reaching the destination and reading what is configured.
+ *    Both roles hold it, per the 2026-08-26 user decision: an Importer may see the
+ *    `File settings` destination and its screens even though §6.5 gives it only read
+ *    access to the record. This is what the menu entry and that route's guard test.
+ *  - `fileSettings.administer` — changing what is configured. Approver only, per
+ *    §6.5. The `file-settings-administration` epic gates its create/edit/delete
+ *    actions on THIS one; adding the Importer to it instead of splitting would have
+ *    silently handed that epic an administer grant nobody asked for.
  *
  * Deliberately absent: user and role administration. It is de-scoped from the
  * whole build (brief §Out of Scope / BR6), so there is no permission to grant and
@@ -46,6 +73,7 @@ const GRANTS: Record<Permission, readonly string[]> = {
   'files.view': [ROLE_IMPORTER, ROLE_APPROVER],
   'files.upload': [ROLE_IMPORTER],
   'imports.report': [ROLE_IMPORTER, ROLE_APPROVER],
+  'fileSettings.view': [ROLE_IMPORTER, ROLE_APPROVER],
   'fileSettings.administer': [ROLE_APPROVER],
 };
 

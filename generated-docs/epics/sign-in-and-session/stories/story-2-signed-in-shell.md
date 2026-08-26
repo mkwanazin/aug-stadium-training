@@ -36,7 +36,7 @@ roles held, never a two-way Importer/Approver branch.
 | ID | Criterion | Coverage |
 |---|---|---|
 | AC-1 | The sidebar shows the signed-in person's name and a badge for each role they hold, and keeps showing them for as long as the session is valid — not only straight after signing in. | vitest |
-| AC-2 | The menu offers only the destinations the signed-in person's roles permit — "Upload a file" absent for an Approver, Approver-only items absent for an Importer — and omits the de-scoped "Users and roles" entry entirely. | vitest |
+| AC-2 | The menu offers only the destinations the signed-in person’s roles permit — “Upload a file” absent for an Approver, nothing at all for an account whose roles the project grants nothing to — and omits the de-scoped “Users and roles” entry entirely. Per the 2026-08-26 decision “File settings” is shared, so an Importer sees it too and no menu entry is Approver-only. | vitest |
 | AC-3 | While signed out, any signed-in URL — including the app root — sends the person to the sign-in screen rather than a welcome page. | playwright |
 | AC-4 | Sign out waits for the session to be ended before navigating, and only then returns the person to sign-in. | playwright |
 | AC-5 | After signing out, pressing the browser Back button does not reveal the previously-viewed page — the person is returned to sign-in. | playwright |
@@ -73,3 +73,4 @@ roles held, never a two-way Importer/Approver branch.
 - Click Sign out → the button shows it is working, then you arrive back at sign-in
 - Sign in, sign out, then press the browser Back button → you're sent to sign-in, not back into the app
 - Switch the sidebar's light/dark control → the whole app changes theme and stays that way when you sign back in
+- Sign in as an Importer → “File settings” is in the menu — the 2026-08-26 decision, it is no longer Approver-only

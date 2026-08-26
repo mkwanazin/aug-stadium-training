@@ -122,3 +122,24 @@ Plain-language record of what was built and why, story by story.
 - Worth knowing for later epics: the automated browser-free checks cannot see either of these
   problems, because the stripped-down browser they run in does not add the announcement element and
   matches labels differently. That is exactly the gap the real-browser run exists to close.
+
+## Manual-test fix cycle 1 — the Importer role name (2026-08-26)
+
+- The importer role is called `File Importer` by the sign-in service, not `Importer` as the
+  requirements document writes it. The app was checking for `Importer`, so every real Importer
+  account matched no role, got an empty menu and was shown the permission-denied panel. One line
+  in the shared permission table now carries the name the service actually returns, and because
+  the menu and the route guard both read that one table, the fix lands on every screen at once.
+- `File settings` used to be Approver-only, taken from the Administration grouping in the design.
+  Following the 26 August decision it is now controlled by a separate "may see file settings"
+  permission that both roles hold, so an Importer sees the destination. Changing what is
+  configured there is still Approver-only, so the later file-settings work does not inherit a
+  wider grant than was asked for.
+- The reported third defect — an account holding both roles losing `Upload a file` — turned out
+  to be the same role-name problem, not a separate bug. The permission table was already
+  producing the union correctly; the Importer half of the union simply never matched, so the
+  both-roles account looked like an Approver. Correcting the name fixed it, and no consumer was
+  collapsing the union.
+- Not fixable here: the sign-in service does not enforce its own session expiry. The tester set a
+  session row to expire three hours in the past and the backend still accepted it. Logged as
+  backend debt in architecture.md; until it is fixed the session limits are presentational.

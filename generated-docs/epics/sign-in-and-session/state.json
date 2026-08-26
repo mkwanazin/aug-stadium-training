@@ -10,9 +10,10 @@
       "Verify you can sign in with your real email address: the app sends whatever you type into 'Email address' as the account's username, because that is the field name the sign-in service documents. If the service actually expects a short username (its own examples disagree — one shows an email, one shows a bare name), every sign-in will be refused even when your details are correct, and the tests would not have caught it because they assume the same mapping the app does.",
       "Verify you stay signed in after signing in: the session is a browser cookie set by the sign-in service on one address and then sent to the transactions service on a different one. If the browser refuses to carry it across those two addresses, you will be bounced straight back to sign-in after a successful sign-in — the tests can't see this because they never cross the two real addresses.",
       "Verify what you see after five refused attempts: the sign-in service documents no separate answer for a locked account, so the app has to infer the lock. If a locked account is refused in exactly the same way as a wrong password, you may get the ordinary 'not accepted' message when you are actually locked out — or the lockout notice when nothing is locked.",
-      "Verify what an Importer sees in the menu: your requirements are ambiguous about whether an Importer should see 'File settings'. The access-control table gives the Importer read access to the File Setting record but no access to the administer-file-settings flow, and the design puts that menu item under an 'Administration' heading — so it is currently treated as Approver-only. Sign in as an Importer and confirm that is what you want.",
-      "Confirm how the idle warning should behave across two tabs. The idle clock is now measured for the whole session rather than per tab, because per-tab it was a real bug: a tab left open in the background saw no activity of its own, ended the shared session, and bounced you out of the tab you were actually working in. A consequence you should confirm: if the warning is showing in one tab and you carry on working in another, the warning withdraws. Typing in the warning's own tab still does not dismiss it — only 'Stay signed in' or expiry does.",
-      "Confirm you are happy that 'Upload a file', 'Import activity' and 'File settings' appear in the menu before their screens exist. Clicking one today lands on a bare not-found page OUTSIDE the application frame — no sidebar, no menu, no Sign out, and no way back except the browser's Back button. Those screens arrive in later epics. The alternative is to show each entry only once its screen lands."
+      "Verify an Importer now gets in and gets a menu. The role is named \"File Importer\" by the sign-in service, not \"Importer\" — the app was matching the wrong name, so every Importer was refused. Signing in as an Importer should now land you on your files with \"Upload a file\", \"Import activity\" and \"File settings\" in the menu. \"File settings\" is there because you decided an Importer may see it; administering file settings stays Approver-only.",
+      "Confirm how the idle warning behaves across two tabs. The idle clock is measured for the whole session rather than per tab, because per-tab it was a real bug: a tab left open in the background saw no activity of its own, ended the shared session, and bounced you out of the tab you were working in. Confirm the consequence: if the warning is showing in one tab and you carry on working in another, the warning withdraws. Typing in the warning’s own tab still does not dismiss it — only \"Stay signed in\" or expiry does. (Separate from this: you found that the sign-in service itself does not enforce session expiry — a session whose expiry you set three hours into the past was still accepted. That is a backend gap, logged in architecture.md as debt, and nothing the app can fix. Until it is fixed these session limits are presentational, not a security control.)",
+      "Confirm you are happy that \"Upload a file\", \"Import activity\" and \"File settings\" appear in the menu before their screens exist — this now affects the Importer as well, who sees all three. Clicking one today lands on a bare not-found page OUTSIDE the application frame — no sidebar, no menu, no Sign out, and no way back except the browser’s Back button. Those screens arrive in later epics. The alternatives are to show each entry only once its screen lands, or to keep the entries and put the not-found page inside the frame.",
+      "Verify the Approver role name. \"File Importer\" was wrong in the requirements docs, so \"Approver\" is now suspect too — it is only believed correct because your Approver menu worked. Sign in as an Approver and check the role badge at the bottom of the sidebar reads exactly \"Approver\". If it reads anything else, tell me the exact spelling."
     ],
     "manualTestResults": [
       {
@@ -265,11 +266,11 @@
       "completedAt": "2026-08-25T12:57:00.000Z"
     },
     "2": {
-      "status": "in-progress",
+      "status": "complete",
       "commit": null,
       "e2eStatus": "passed",
       "startedAt": "2026-08-25T13:20:00.000Z",
-      "completedAt": "2026-08-25T13:52:00.000Z"
+      "completedAt": "2026-08-26T06:43:20.301Z"
     },
     "3": {
       "status": "complete",
@@ -279,13 +280,13 @@
       "completedAt": "2026-08-25T14:18:00.000Z"
     },
     "4": {
-      "status": "in-progress",
+      "status": "complete",
       "commit": null,
       "e2eStatus": "passed",
       "startedAt": "2026-08-25T14:20:00.000Z",
-      "completedAt": "2026-08-25T14:40:00.000Z"
+      "completedAt": "2026-08-26T06:43:20.302Z"
     }
   },
   "halt": null,
-  "lastUpdated": "2026-08-26T06:23:37.994Z"
+  "lastUpdated": "2026-08-26T06:43:20.302Z"
 }

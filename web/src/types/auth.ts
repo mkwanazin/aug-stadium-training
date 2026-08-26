@@ -38,10 +38,17 @@ export interface AuthErrorResponse {
 /**
  * `components.schemas.RoleRead` — one role an account holds.
  *
- * `Name` is an open string, NOT a `'Importer' | 'Approver'` union: the API's own
- * example is `Viewer`, and an account may legitimately come back carrying a role
- * this frontend grants nothing to (brief §Notes & Caveats, "Role set may exceed
- * two"). Closing the union here would make that case unrepresentable.
+ * `Name` is an open string, NOT a closed union of the role names this project
+ * happens to know (`'File Importer' | 'Approver'`): the API's own example is
+ * `Viewer`, and an account may legitimately come back carrying a role this
+ * frontend grants nothing to (brief §Notes & Caveats, "Role set may exceed two").
+ * Closing the union here would make that case unrepresentable.
+ *
+ * The names themselves are not this file's business — the verified spellings live
+ * in `@/lib/auth/permissions` and project.md §Roles & Permissions. An earlier
+ * version of this comment used `'Importer'` as its example, which is the prose
+ * spelling the backend does not return; naming it even in an example re-seeds the
+ * mismatch that refused every importer account.
  */
 export interface RoleRead {
   Id?: number;

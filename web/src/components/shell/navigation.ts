@@ -44,9 +44,16 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     heading: 'Administration',
     destinations: [
       {
+        // Seeing this destination is a VIEW permission both roles hold, not the
+        // Approver's administer permission (user decision 2026-08-26, project.md
+        // §Roles & Permissions / digest §Your Decisions). The design files File
+        // settings under `Administration`, which is why it was first built
+        // Approver-only; the grouping is presentation, not the gate. Changing
+        // what is configured stays `fileSettings.administer`, which the
+        // `file-settings-administration` epic gates its actions on.
         label: 'File settings',
         href: '/file-settings',
-        permission: 'fileSettings.administer',
+        permission: 'fileSettings.view',
       },
     ],
   },

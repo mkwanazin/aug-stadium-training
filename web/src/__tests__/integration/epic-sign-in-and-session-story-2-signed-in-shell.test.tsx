@@ -10,10 +10,37 @@
  * out, keyboard + accessibility) are playwright-tagged and live in
  * `web/e2e/epic-sign-in-and-session-story-2-signed-in-shell.spec.ts`.
  *
- * These tests WILL FAIL until the shell is implemented (TDD red).
+ * ===========================================================================
+ * REGENERATED 2026-08-26 — two contract corrections. Read both before editing.
+ * ===========================================================================
+ *
+ * 1. ROLE NAMES. The Authentication API spells the importer role `File Importer`,
+ *    WITH THE SPACE — verified live against `GET /v1/auth/userinfo` during this
+ *    epic's manual test. `requirements-application.md` calls it "Importer", intake
+ *    copied that spelling into `project.md`, and the application matched the literal
+ *    `Importer` — so every real Importer account matched no role at all and was shown
+ *    the permission-denied panel with an empty menu. The previous version of THIS
+ *    FILE could not catch it, because it asserted against the same wrong name the
+ *    code used.
+ *
+ *    The fix that keeps it caught: every role name below comes from
+ *    `@/mocks/data/identity`, which is now the verified single source both test
+ *    layers and the manual-test fixtures read. NEVER write a role name as a bare
+ *    string literal in this file, and never import the application's own role
+ *    constants (`@/lib/auth/permissions`) here — a test that takes its expectation
+ *    from the code under test cannot disagree with it, which is precisely how the
+ *    bug shipped. `project.md` §Roles & Permissions carries the verified table.
+ *
+ * 2. AN IMPORTER MAY SEE `File settings` (user decision, design digest §Your
+ *    Decisions, 2026-08-26). The destination was built Approver-only from the
+ *    design's `Administration` grouping and §6.5. It is now gated on a *view*
+ *    permission BOTH roles hold; the administer actions on that screen stay
+ *    Approver-only (out of this story's scope, and not asserted here).
+ *
+ * These tests WILL FAIL until the shell matches the corrected contract (TDD red).
  *
  * ---------------------------------------------------------------------------
- * Implementation contract these tests pin (read this before writing the layout)
+ * Implementation contract these tests pin (read this before changing the layout)
  * ---------------------------------------------------------------------------
  * 1. `web/src/app/(app)/layout.tsx` default-exports the shell component and takes
  *    `children`. It is a CLIENT component (or immediately renders one): the session
@@ -26,18 +53,24 @@
  *    `Mock layer required: no`, so there is no MSW runtime layer to lean on.
  * 3. The response body is `UserInfoRead` (per `documentation/Authentication_API.yaml`).
  *    The identity block composes the display name from `FirstName` + `LastName` and
- *    renders one badge per entry in `Roles[]`.
- * 4. Nav destinations are LINKS with these accessible names: `Received files`,
- *    `Upload a file`, `Import activity`, `File settings`. `Users and roles` must
- *    never be rendered — user administration is de-scoped from the whole build
- *    (brief §Out of Scope / BR6).
+ *    renders one badge per entry in `Roles[]`, showing each role name EXACTLY as the
+ *    API spelt it — it is shown to a person, so it is never re-worded or re-cased.
+ * 4. The menu is a `nav` landmark holding one LINK per permitted destination. The
+ *    landmark stands even when nothing is permitted (a sidebar that silently loses
+ *    its menu region reads as a broken frame rather than an empty one), so these
+ *    tests scope every menu assertion to it — which also keeps the sidebar's
+ *    `Skip to content` anchor and the page's own content out of the count.
+ *    Destination names: `Received files`, `Upload a file`, `Import activity`,
+ *    `File settings`. `Users and roles` must never be rendered for ANY role — user
+ *    administration is de-scoped from the whole build (brief §Out of Scope / BR6).
  * 5. Which destinations appear is a PERMISSION check evaluated against the roles the
  *    account actually holds — never a two-way `isApprover ? … : …` branch. The
  *    both-roles and unrecognised-role tests below exist precisely to fail such a
- *    branch (brief §Notes & Caveats "Role set may exceed two").
- *    Permission source: `documentation/requirements-application.md` §6.5 —
- *      Importer  → Upload a file (X), Import activity (X); no administration flows.
- *      Approver  → File settings (X, "Administer file settings"); may NOT upload.
+ *    branch (brief §Notes & Caveats "Role set may exceed two"). Post-decision grants:
+ *      Received files  → both roles
+ *      Upload a file   → Importer only (an Approver may NOT upload)
+ *      Import activity → both roles
+ *      File settings   → both roles (view); administering it stays Approver-only
  * 6. Sign out is a BUTTON named "Sign out" in the sidebar (its awaited-logout
  *    behaviour is AC-4, asserted in Playwright — here it is only the settle signal).
  * 7. The light/dark control is a `role="switch"` in the sidebar whose accessible name
@@ -46,18 +79,20 @@
  *    `@custom-variant dark (&:is(.dark *))`) — and the choice is remembered so it
  *    survives the next load.
  */
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { Mock } from 'vitest';
 import type { ReactNode } from 'react';
 
-// Production code under test — will not resolve until the shell exists (TDD red).
+// Production code under test.
 import AppLayout from '@/app/(app)/layout';
 import { get } from '@/lib/api/client';
 
-// The ONE project-wide source of the userinfo contract, shared with the Playwright
-// layer. Never hand-write a userinfo body in a test — that is how the layers drift.
+// The ONE project-wide source of the userinfo contract — role names included —
+// shared with the Playwright layer. Never hand-write a userinfo body or a role name
+// in a test: that is how the layers drift, and how the `File Importer` bug survived
+// a green suite.
 import {
   userInfoFor,
   displayNameFor,
@@ -122,9 +157,31 @@ const mockGet = get as unknown as Mock;
  * Helpers
  * ------------------------------------------------------------------------- */
 
+/**
+ * Text the content slot renders. Deliberately NOT the name of any destination, so a
+ * menu assertion can never be satisfied by the page sitting inside the shell.
+ */
+const PAGE_CONTENT = 'The page inside the shell';
+
 /** The document element carries the applied theme (see contract note 7). */
 const documentIsDark = () =>
   document.documentElement.classList.contains('dark');
+
+/**
+ * Every destination the signed-in person is actually offered, scoped to the menu
+ * landmark and sorted — so the assertion is about WHICH destinations are on offer,
+ * not the order the design happens to group them in. Comparing the whole set (rather
+ * than probing one name at a time) is what makes "only the destinations their roles
+ * permit" falsifiable: an extra entry fails just as loudly as a missing one.
+ */
+const menuDestinations = (): string[] =>
+  within(screen.getByRole('navigation'))
+    .queryAllByRole('link')
+    .map((link) => link.textContent?.trim() ?? '')
+    .sort();
+
+/** Read as a set, so the expectation reads in the design's own order. */
+const asSet = (...destinations: string[]): string[] => [...destinations].sort();
 
 /**
  * Render the shell for a signed-in account and wait for the session check to
@@ -135,7 +192,7 @@ const renderShell = async (userInfo: UserInfoRead) => {
   mockGet.mockResolvedValue(userInfo);
   const view = render(
     <AppLayout>
-      <h1>Received files</h1>
+      <h1>{PAGE_CONTENT}</h1>
     </AppLayout>,
   );
   await screen.findByRole('button', { name: /sign out/i });
@@ -159,9 +216,10 @@ describe('Epic 1, Story 2: signed-in shell', () => {
    * ----------------------------------------------------------------------- */
 
   // AC-1
-  it('shows the signed-in person and a badge for every role they hold', async () => {
+  it('shows the signed-in person and a badge for every role they hold, named as the API names them', async () => {
     // An account holding BOTH roles proves "a badge for each role", which a single
-    // role badge driven by `RolesString` would not.
+    // role badge driven by `RolesString` would not. The names are the API's own
+    // spelling — `File Importer`, not the requirements document's "Importer".
     const userInfo = userInfoFor([IMPORTER_ROLE, APPROVER_ROLE]);
 
     await renderShell(userInfo);
@@ -183,7 +241,7 @@ describe('Epic 1, Story 2: signed-in shell', () => {
     nav.pathname = '/import-activity';
     rerender(
       <AppLayout>
-        <h1>Import activity</h1>
+        <h1>{PAGE_CONTENT}</h1>
       </AppLayout>,
     );
 
@@ -198,66 +256,68 @@ describe('Epic 1, Story 2: signed-in shell', () => {
    * ----------------------------------------------------------------------- */
 
   // AC-2
-  it('offers an Importer the destinations their role permits and withholds the Approver-only ones', async () => {
+  it('offers an Importer every destination their role permits, File settings included', async () => {
+    // This is the test the live bug would have failed: the account's role comes back
+    // as `File Importer`, so a shell gating on the literal `Importer` grants it
+    // nothing and leaves the menu empty.
     await renderShell(userInfoFor(IMPORTER_ROLE));
 
-    expect(
-      screen.getByRole('link', { name: 'Upload a file' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'Import activity' }),
-    ).toBeInTheDocument();
-    // Administering file settings is an Approver flow (§6.5).
-    expect(screen.queryByText('File settings')).not.toBeInTheDocument();
-    // De-scoped from the whole build — never offered to anyone.
-    expect(screen.queryByText(/users and roles/i)).not.toBeInTheDocument();
+    expect(menuDestinations()).toEqual(
+      asSet(
+        'Received files',
+        'Upload a file',
+        'Import activity',
+        // Per the 2026-08-26 decision: seeing this destination is a view permission
+        // both roles hold, not the Approver's administer permission.
+        'File settings',
+      ),
+    );
   });
 
   // AC-2
   it('withholds "Upload a file" from an Approver while offering their own destinations', async () => {
     await renderShell(userInfoFor(APPROVER_ROLE));
 
-    expect(screen.queryByText('Upload a file')).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'File settings' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'Import activity' }),
-    ).toBeInTheDocument();
+    expect(menuDestinations()).toEqual(
+      asSet('Received files', 'Import activity', 'File settings'),
+    );
+    // De-scoped from the whole build, so it is offered to nobody — least of all the
+    // Approver, who would otherwise own it. Checked across the WHOLE shell rather
+    // than just the menu: it must not appear anywhere.
     expect(screen.queryByText(/users and roles/i)).not.toBeInTheDocument();
   });
 
   // AC-2
-  it('offers an account holding both roles the destinations of both, not one role branch', async () => {
-    // The test that fails a hard-coded `isApprover ? approverNav : importerNav`:
-    // a two-way branch can only ever produce one of these two links.
+  it('offers an account holding both roles the union of what each permits, not one role branch', async () => {
+    // The test that fails a hard-coded `isApprover ? approverNav : importerNav`: for
+    // an account holding both, such a branch resolves to the Approver side and drops
+    // "Upload a file" — the one destination the two roles do not share.
     await renderShell(userInfoFor([IMPORTER_ROLE, APPROVER_ROLE]));
 
-    expect(
-      screen.getByRole('link', { name: 'Upload a file' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'File settings' }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/users and roles/i)).not.toBeInTheDocument();
+    expect(menuDestinations()).toEqual(
+      asSet(
+        'Received files',
+        'Upload a file',
+        'Import activity',
+        'File settings',
+      ),
+    );
   });
 
   // AC-2
-  it('offers no role-gated destination to an account whose only role is outside the permitted set', async () => {
+  it('offers no destination at all to an account whose only role is outside the permitted set', async () => {
     // `Viewer` is a role the auth API can genuinely return but this project grants
-    // nothing to. A permission check yields an empty set; a two-way branch would
-    // fall through to the Importer menu and hand them "Upload a file".
+    // nothing to. A permission check yields an empty menu; a two-way branch would
+    // fall through to the Importer side and hand them the lot.
     const userInfo = userInfoFor(UNRECOGNISED_ROLE);
 
     await renderShell(userInfo);
 
-    // They are signed in and their role is shown honestly...
+    // They are signed in and the role they hold is named honestly...
     expect(screen.getByText(displayNameFor(userInfo))).toBeInTheDocument();
     expect(screen.getByText(UNRECOGNISED_ROLE)).toBeInTheDocument();
     // ...but it unlocks nothing.
-    expect(screen.queryByText('Upload a file')).not.toBeInTheDocument();
-    expect(screen.queryByText('File settings')).not.toBeInTheDocument();
-    expect(screen.queryByText(/users and roles/i)).not.toBeInTheDocument();
+    expect(menuDestinations()).toEqual([]);
   });
 
   /* ----------------------------------------------------------------------- *
