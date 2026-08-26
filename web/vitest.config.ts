@@ -8,6 +8,13 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
+    // Vitest's 5s default is a poor fit for interaction-heavy integration tests:
+    // `userEvent` typing costs ~15ms per character under jsdom, so a test that
+    // fills a form several times (e.g. the five refusals a lockout needs) spends
+    // seconds on keystrokes alone and times out under parallel worker load while
+    // passing in isolation. A timeout still catches a genuinely hung test — it
+    // just no longer fails honest ones for being long.
+    testTimeout: 20_000,
     include: [
       'src/**/__tests__/**/*.[jt]s?(x)',
       'src/**/?(*.)+(test).[jt]s?(x)',
