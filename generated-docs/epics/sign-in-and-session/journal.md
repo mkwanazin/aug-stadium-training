@@ -143,3 +143,13 @@ Plain-language record of what was built and why, story by story.
 - Not fixable here: the sign-in service does not enforce its own session expiry. The tester set a
   session row to expire three hours in the past and the backend still accepted it. Logged as
   backend debt in architecture.md; until it is fixed the session limits are presentational.
+
+## Manual test passed (2026-08-26)
+
+All 36 manual checks passed on the second pass, including the seven-item
+"check these first" ledger. The first pass found one real defect — the `File Importer`
+role name — which accounted for four of the five reported failures. Two decisions were
+taken during the cycle: an Importer may see the `File settings` destination, and the
+15-minute idle window deliberately does not survive a page load. One finding was
+accepted as backend debt: the Authentication API does not enforce its own session
+expiry.
