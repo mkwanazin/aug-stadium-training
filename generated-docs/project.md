@@ -48,9 +48,22 @@ A financial-services back-office console for bringing transaction files into a p
 
 **Template:** `custom`
 
-| Permission | Importer | Approver |
+| Permission | File Importer | Approver |
 |---|---|---|
 | View main dashboard | ✓ | ✓ |
+| See the File settings destination | ✓ | ✓ |
+| Administer file settings | | ✓ |
+
+**Role names as the Authentication API actually spells them** — verified live against `GET /v1/auth/userinfo` on 2026-08-26, during the `sign-in-and-session` manual test:
+
+| Role | Name returned in `Roles[].Name` |
+|---|---|
+| Importer | `File Importer` |
+| Approver | `Approver` |
+
+Intake read the role names off `documentation/requirements-application.md`, which calls the first role **Importer**. The backend returns **`File Importer`**. Any code that matches the literal string `Importer` refuses every Importer account — which is exactly what happened in the `sign-in-and-session` manual test. Match on the names in this table, not on the requirements prose. `Viewer` (the auth API’s own `RoleRead` example) is a role the project grants nothing to and must be refused rather than silently permitted.
+
+**Decision (2026-08-26, user):** an Importer **may see** the `File settings` destination and its screens, even though §6.5 gives the Importer only read access to the File Setting record. Gate the menu entry and the screen on a *view* permission both roles hold; keep the administer actions Approver-only.
 
 > Permissions extend during BUILD as new stories surface new actions — see [agent-autonomy.md](.claude/shared/agent-autonomy.md). Additions land here via a project-change PR (§6.1 of the epic-branch plan). Permission removals or role-set changes halt for user review.
 >
