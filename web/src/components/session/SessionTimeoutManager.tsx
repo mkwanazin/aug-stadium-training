@@ -49,6 +49,20 @@ import type { ReactNode } from 'react';
 const TICK_MS = 1000;
 
 /**
+ * How long ending a session waits for `POST /v1/auth/logout` to answer before
+ * returning the person to sign in without it.
+ *
+ * A bound is needed because "the request failed" and "the request never comes
+ * back" are different things. A REJECTED logout settles at once and is handled;
+ * a PENDING one — a proxy that black-holes the request, a connection left hanging
+ * — never settles at all, and with the ticker already stood down for the ending
+ * session the person was left sitting on a signed-in screen behind a frozen
+ * countdown that never redirected. A few seconds is long enough for a healthy
+ * logout to answer and short enough not to strand anybody.
+ */
+const LOGOUT_WAIT_MS = 5000;
+
+/**
  * How idle the session has to be for the warning to be raised. A warning falling
  * due inside the current tick is raised now rather than on the next one:
  * detection is only ever as fine as the tick, and the person is promised a full
@@ -72,6 +86,38 @@ const ACTIVITY_EVENTS = [
 
 /** Why the session ended — carried to sign in, which explains it there. */
 type SessionEndReason = 'idle-timeout' | 'session-expired';
+
+/**
+ * Asks the server to drop the session, waiting no longer than `LOGOUT_WAIT_MS`.
+ *
+ * `true` means the server CONFIRMED the session is gone. Both a refusal and a
+ * request that never answers give `false`: in either case the session may still
+ * be live server-side, so the caller must treat a timed-out logout exactly as it
+ * treats a failed one.
+ *
+ * The request itself is not cancelled — the shared API client exposes no abort
+ * signal, and cancelling would buy nothing anyway: if the logout does eventually
+ * land, the session ending is precisely what was asked for. Only the waiting
+ * stops. The rejection is handled inside the race rather than after it, so a
+ * logout that fails long after we stopped listening cannot surface as an
+ * unhandled rejection.
+ */
+function requestServerLogout(): Promise<boolean> {
+  let giveUpTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const answered = logout().then(
+    () => true,
+    () => false,
+  );
+
+  const waitedLongEnough = new Promise<boolean>((resolve) => {
+    giveUpTimer = setTimeout(() => resolve(false), LOGOUT_WAIT_MS);
+  });
+
+  return Promise.race([answered, waitedLongEnough]).finally(() => {
+    if (giveUpTimer !== undefined) clearTimeout(giveUpTimer);
+  });
+}
 
 export function SessionTimeoutManager({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -114,21 +160,20 @@ export function SessionTimeoutManager({ children }: { children: ReactNode }) {
     isEnding.current = true;
 
     // Awaited, so the server is asked to drop the session before we navigate
-    // (brief R4 / BR4). Unlike the Sign out button, a failure here cannot leave
-    // the person sitting on a signed-in screen: the session is over as far as
-    // this application is concerned either way, and the next backend call will
-    // be refused. So we report nothing and return them to sign in regardless.
-    const ended = await logout().then(
-      () => true,
-      () => false,
-    );
+    // (brief R4 / BR4) — but for a bounded few seconds only. Unlike the Sign out
+    // button, nothing here is reported back to the person: the session is over as
+    // far as this application is concerned however the request went, and the next
+    // backend call will be refused. So they are returned to sign in regardless of
+    // whether the logout succeeded, failed, or never answered at all.
+    const ended = await requestServerLogout();
 
     // Cleared only once the session is CONFIRMED over — the same order the Sign
-    // out button uses. Clearing ahead of the request would discard the recorded
-    // sign-in moment even when the request failed, and `anchorSessionStart` would
-    // then re-anchor the eight-hour cap at now: a session this app has already
-    // ended, but which is still live server-side, would come back with a fresh
-    // eight hours the moment the person reopened a signed-in address.
+    // out button uses, and the reason a timed-out logout has to count as a failed
+    // one. Clearing without confirmation would discard the recorded sign-in
+    // moment while the session was potentially still live server-side, and
+    // `anchorSessionStart` would then re-anchor the eight-hour cap at now: a
+    // session this app has already ended would come back with a fresh eight
+    // hours the moment the person reopened a signed-in address.
     if (ended) clearSessionStart();
 
     // `replace`: a screen whose session has ended should not sit in history for
@@ -140,7 +185,18 @@ export function SessionTimeoutManager({ children }: { children: ReactNode }) {
     if (awaitingSession) return;
 
     startedAt.current = anchorSessionStart();
-    // Arriving on a signed-in screen is itself the person being here.
+    /*
+     * Arriving on a signed-in screen is itself the person being here, so the idle
+     * window starts over here on every mount. That means the idle window
+     * deliberately does NOT survive a page load: reload after 14 idle minutes and
+     * you get the full 15 again, so the shared activity stamp only ever does
+     * cross-TAB work, never cross-load work.
+     *
+     * Reviewed and accepted knowingly by the user on 2026-08-26 — opening the app
+     * is a person being present, and the eight-hour absolute cap (which DOES
+     * survive a reload, being anchored in shared storage above) is what stops
+     * reloading from extending a session indefinitely. Please do not "fix" this.
+     */
     lastActivityAt.current = Date.now();
     // The clock is starting over, so no warning is outstanding — otherwise a flag
     // left set from a previous run would go on suppressing activity notes.

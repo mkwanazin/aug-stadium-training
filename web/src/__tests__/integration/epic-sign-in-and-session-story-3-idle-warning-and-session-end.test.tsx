@@ -4,10 +4,12 @@
  * - Route: /files
  * - Target File: web/src/app/(app)/layout.tsx
  * - Page Action: modify_existing
- * - Covers: AC-5 ONLY. AC-1 to AC-4 are tagged `playwright` and are driven in a
- *   real browser with `page.clock` against the real NFR-base-7 durations — do not
- *   re-assert the flow (warning appears / countdown / expiry redirect / 8-hour cap)
- *   here. See .claude/policies/testing-policy.md § Time-dependent behaviour.
+ * - Covers: AC-5, plus one regression added after the epic-end code review (see
+ *   the second test — a logout request that never answers). AC-1 to AC-4 are
+ *   tagged `playwright` and are driven in a real browser with `page.clock` against
+ *   the real NFR-base-7 durations — do not re-assert the flow (warning appears /
+ *   countdown / expiry redirect / 8-hour cap) here.
+ *   See .claude/policies/testing-policy.md § Time-dependent behaviour.
  *
  * AC-5 — "The warning takes keyboard focus when it appears, can be answered with
  * the keyboard alone, and returns focus to where the person was."
@@ -52,10 +54,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Imports the REAL production component — fails until Story 3 is implemented.
 import { SessionTimeoutManager } from '@/components/session/SessionTimeoutManager';
+import { AUTH_ENDPOINTS } from '@/lib/api/auth';
+import { post } from '@/lib/api/client';
+import {
+  markSessionStart,
+  readSessionStart,
+} from '@/lib/auth/session-lifetime';
 
 // Only the HTTP boundary is mocked (testing-policy.md § Mocking strategy). The
-// manager ends the session against POST /v1/auth/logout on expiry; this test never
-// lets the countdown run out, but the module must still resolve.
+// manager ends the session against POST /v1/auth/logout on expiry.
 vi.mock('@/lib/api/client', () => ({
   get: vi.fn(),
   post: vi.fn(),
@@ -63,17 +70,33 @@ vi.mock('@/lib/api/client', () => ({
   del: vi.fn(),
 }));
 
+/**
+ * The App Router does not exist in jsdom, so it is stubbed — but `replace` is one
+ * shared spy rather than a fresh mock per call, because being returned to sign in
+ * is the observable outcome of a session ending.
+ */
+const { replace } = vi.hoisted(() => ({ replace: vi.fn() }));
+
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), replace, refresh: vi.fn() }),
   usePathname: () => '/files',
   useSearchParams: () => new URLSearchParams(),
 }));
+
+const mockPost = vi.mocked(post);
 
 /** NFR-base-7: 15-minute idle window, warned 60 seconds before it ends. */
 const MINUTE_MS = 60_000;
 const IDLE_WINDOW_MS = 15 * MINUTE_MS;
 const WARNING_LEAD_MS = MINUTE_MS;
 const TIME_UNTIL_WARNING_MS = IDLE_WINDOW_MS - WARNING_LEAD_MS;
+
+/**
+ * Comfortably longer than the few seconds the manager gives the logout request
+ * before it stops waiting. Deliberately not the production constant: the contract
+ * is "a short bounded wait", not one exact number of milliseconds.
+ */
+const LONGER_THAN_ANY_LOGOUT_WAIT_MS = 30_000;
 
 /** Bounded so a broken focus trap fails the test instead of spinning forever. */
 const MAX_TAB_STOPS = 8;
@@ -84,6 +107,9 @@ const activeElement = (): HTMLElement | null =>
 describe('Epic sign-in-and-session, Story 3: idle warning keyboard focus', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    // The session's start and activity stamps live in localStorage, which jsdom
+    // keeps between tests — cleared so no test inherits another's clock.
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -153,5 +179,58 @@ describe('Epic sign-in-and-session, Story 3: idle warning keyboard focus', () =>
     await waitFor(() => {
       expect(pageControl).toHaveFocus();
     });
+  });
+
+  /**
+   * Regression — epic-end code review, user decision 2026-08-26.
+   *
+   * Ending a session asks the server to drop it first, and that wait used to be
+   * unbounded. A REFUSED logout was always handled; a request that never ANSWERS
+   * was not, and left the person on a signed-in screen behind a countdown that had
+   * stopped, never redirecting. The wait is now bounded, and giving up on the wait
+   * must not be mistaken for the logout having succeeded.
+   *
+   * Not a Playwright case: a black-holed request is not something to drive through
+   * a real browser.
+   */
+  it('returns the person to sign in even when the logout request never answers, without discarding the recorded sign-in moment', async () => {
+    // Never settles — a proxy swallowing the request, not one refusing it.
+    mockPost.mockReturnValueOnce(new Promise<never>(() => {}));
+
+    const signedInAt = Date.now();
+    markSessionStart(signedInAt);
+
+    render(
+      <SessionTimeoutManager>
+        <button type="button">Continue working</button>
+      </SessionTimeoutManager>,
+    );
+
+    // Nobody answers the warning, so the whole idle window runs out.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(IDLE_WINDOW_MS);
+    });
+
+    // The server is asked to drop the session before anyone is navigated away
+    // (brief R4 / BR4) — so at this point the request is out and the person has
+    // not moved.
+    expect(mockPost).toHaveBeenCalledWith(AUTH_ENDPOINTS.logout);
+    expect(replace).not.toHaveBeenCalled();
+
+    // ...but the waiting is bounded, so they are returned to sign in anyway
+    // rather than being stranded on a dead screen.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(LONGER_THAN_ANY_LOGOUT_WAIT_MS);
+    });
+
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith('/sign-in?reason=idle-timeout');
+    });
+
+    // The recorded sign-in moment survives an unconfirmed logout. Discarding it
+    // here would let the eight-hour cap re-anchor at now on the next signed-in
+    // screen, handing a session that may still be live server-side a fresh eight
+    // hours.
+    expect(readSessionStart()).toBe(signedInAt);
   });
 });
