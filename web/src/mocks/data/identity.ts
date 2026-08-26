@@ -20,52 +20,38 @@
  */
 
 /* ------------------------------------------------------------------------ *
- * Types — mirrored from Authentication_API.yaml
+ * Types — re-exported from the application's own mirror of the spec
  *
- * `web/src/types/api-generated.ts` does not exist yet, so the spec's schemas
- * are mirrored here (per testing-policy § Mock data: fall back to the brief's
- * Data Model). When generated types land, re-point these aliases at them
- * rather than maintaining two copies.
+ * `@/types/auth` already mirrors `Authentication_API.yaml` for the production
+ * code, so these factories build their bodies from THOSE types rather than a
+ * second hand-maintained copy. One mirror means a spec change cannot leave the
+ * fixtures agreeing with themselves and disagreeing with the application —
+ * which is the same class of drift as the `File Importer` role-name mismatch.
  *
- * Every property is optional because the spec declares no `required` list on
- * any of these schemas — a 200 body may legitimately omit fields (the spec's
- * own `/v1/auth/userinfo` example returns `Username` only, a field that is not
- * even declared on `UserInfoRead`; see the drift note at the bottom of file).
+ * Every property is optional there because the spec declares no `required` list
+ * on any auth schema — a 200 body may legitimately omit fields (the spec's own
+ * `/v1/auth/userinfo` example returns `Username` only, a field that is not even
+ * declared on `UserInfoRead`; see the drift note at the bottom of this file).
+ *
+ * Imported by RELATIVE path, not `@/`: Playwright loads this module directly
+ * from `e2e/`, and its runtime resolves relative specifiers without alias
+ * plumbing. The import is type-only, so nothing is required at runtime either.
  * ------------------------------------------------------------------------ */
 
-/** `components.schemas.RoleRead` */
-export interface RoleRead {
-  Id?: number;
-  Name?: string;
-  LastChangedUser?: string;
-  /** Spec example format: `2025-04-30 15:00:00` (SAST / GMT+2 per project.md §Compliance). */
-  LastChangedDate?: string;
-}
+import type {
+  AuthErrorResponse,
+  AuthMessageResponse,
+  RoleRead,
+  UserInfoRead,
+} from '../../types/auth';
 
-/** `components.schemas.UserInfoRead` — returned by `GET /v1/auth/userinfo`. */
-export interface UserInfoRead {
-  Id?: number;
-  Email?: string;
-  FirstName?: string;
-  LastName?: string;
-  RolesString?: string;
-  Roles?: RoleRead[];
-  LastChangedUser?: string;
-  LastChangedDate?: string;
-}
+export type { RoleRead, UserInfoRead };
 
 /** `components.schemas.DefaultResponse` — login/logout confirmation body. */
-export interface DefaultResponse {
-  Id?: number;
-  MessageType?: string;
-  Messages?: string[];
-}
+export type DefaultResponse = AuthMessageResponse;
 
 /** `components.schemas.ErrorResponse` — 400 on a malformed login body. */
-export interface ErrorResponse {
-  Error?: string;
-  Message?: string;
-}
+export type ErrorResponse = AuthErrorResponse;
 
 /* ------------------------------------------------------------------------ *
  * Role names
@@ -76,8 +62,7 @@ export interface ErrorResponse {
  * template `custom`). Exported for spec readability only — the application
  * owns the real permitted-role decision; tests must assert the app's gating
  * behaviour, never re-derive it from this list.
- */
-/**
+ *
  * VERIFIED LIVE (2026-08-26) against `GET /v1/auth/userinfo`, during the
  * `sign-in-and-session` manual test. The Authentication API spells the importer
  * role `File Importer` — WITH THE SPACE — not `Importer`.

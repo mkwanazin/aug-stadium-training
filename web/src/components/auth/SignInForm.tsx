@@ -124,12 +124,17 @@ export function SignInForm() {
    * typing (brief R10 / UI-03).
    */
   const reportOnBlur = (field: keyof FieldErrors, value: string) => {
-    const message =
-      value.trim() === ''
-        ? field === 'email'
-          ? COPY.emailRequired
-          : COPY.passwordRequired
-        : undefined;
+    // Emptiness is tested per field, exactly as submit tests it: an address is
+    // trimmed, a password is taken verbatim because whitespace can legitimately
+    // be part of one. Trimming both here reported a space-only password as
+    // missing on blur and then withdrew the message on submit — which went on to
+    // send that same password.
+    const isMissing = field === 'email' ? value.trim() === '' : value === '';
+    const message = isMissing
+      ? field === 'email'
+        ? COPY.emailRequired
+        : COPY.passwordRequired
+      : undefined;
     reportedFields.current[field] = message !== undefined;
     setFieldErrors((current) => ({ ...current, [field]: message }));
   };

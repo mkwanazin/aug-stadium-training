@@ -113,14 +113,23 @@ export function SessionTimeoutManager({ children }: { children: ReactNode }) {
     if (isEnding.current) return;
     isEnding.current = true;
 
-    clearSessionStart();
-
     // Awaited, so the server is asked to drop the session before we navigate
     // (brief R4 / BR4). Unlike the Sign out button, a failure here cannot leave
     // the person sitting on a signed-in screen: the session is over as far as
     // this application is concerned either way, and the next backend call will
     // be refused. So we report nothing and return them to sign in regardless.
-    await logout().catch(() => undefined);
+    const ended = await logout().then(
+      () => true,
+      () => false,
+    );
+
+    // Cleared only once the session is CONFIRMED over — the same order the Sign
+    // out button uses. Clearing ahead of the request would discard the recorded
+    // sign-in moment even when the request failed, and `anchorSessionStart` would
+    // then re-anchor the eight-hour cap at now: a session this app has already
+    // ended, but which is still live server-side, would come back with a fresh
+    // eight hours the moment the person reopened a signed-in address.
+    if (ended) clearSessionStart();
 
     // `replace`: a screen whose session has ended should not sit in history for
     // the Back button to return to.

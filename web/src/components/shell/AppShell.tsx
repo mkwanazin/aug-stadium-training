@@ -3,11 +3,11 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+import { StatusBanner } from '@/components/feedback/StatusBanner';
 import { SidebarNav } from '@/components/shell/SidebarNav';
 import { SignOutButton } from '@/components/shell/SignOutButton';
 import { SignedInBlock } from '@/components/shell/SignedInBlock';
 import { ThemeSwitch } from '@/components/theme/ThemeSwitch';
-import { StatusBanner } from '@/components/feedback/StatusBanner';
 import { Button } from '@/components/ui/button';
 import { SIGN_IN_ROUTE, useSession } from '@/lib/auth/session';
 
