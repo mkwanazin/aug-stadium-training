@@ -77,7 +77,22 @@ export interface ErrorResponse {
  * owns the real permitted-role decision; tests must assert the app's gating
  * behaviour, never re-derive it from this list.
  */
-export const IMPORTER_ROLE = 'Importer';
+/**
+ * VERIFIED LIVE (2026-08-26) against `GET /v1/auth/userinfo`, during the
+ * `sign-in-and-session` manual test. The Authentication API spells the importer
+ * role `File Importer` — WITH THE SPACE — not `Importer`.
+ *
+ * `documentation/requirements-application.md` calls it “Importer”, intake copied
+ * that into `project.md`, and both this factory and the application matched the
+ * literal `Importer`. The result was that every real Importer account matched no
+ * role at all and was shown the permission-denied panel. The tests could not catch
+ * it because they asserted against the same wrong name the code used.
+ *
+ * `project.md` §Roles & Permissions now carries the verified table. Change a role
+ * name HERE and in `web/src/lib/auth/permissions.ts` together — both test layers
+ * read this file, so this is the single place the response bodies come from.
+ */
+export const IMPORTER_ROLE = 'File Importer';
 export const APPROVER_ROLE = 'Approver';
 
 /**
